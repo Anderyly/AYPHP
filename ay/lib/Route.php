@@ -2,7 +2,7 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link https://blog.aaayun.cc/
+ * @link https://rmc.inkc/
  * @copyright Copyright (c) 2018
  */
 
@@ -130,7 +130,7 @@ class Route
 
     private function bq($path_arr, $one = 1, $two = 2)
     {
-        // 补全url
+        // 补全
         $num = count($path_arr);
         if ($num == $one) {
             $path_arr[] = C('controller');
