@@ -2,7 +2,7 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link https://rmc.ink/
+ * @link http://vclove.cn/
  * @copyright Copyright (c) 2018
  */
 
