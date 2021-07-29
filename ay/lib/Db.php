@@ -21,6 +21,7 @@ class Db
     private $user;
     private $pass;
     private $group = '';
+    private $having = '';
     private static $sql = false; //最后一条sql语句
     private $where = '';
     private $order = '';
@@ -168,16 +169,13 @@ class Db
      * @param string $sql
      * @return mixed
      */
-    public function doExec($sql = '', $op = '')
+    public function doExec($sql = '')
     {
         self::$sql = $sql;
         try {
             $res = self::$db->exec(self::$sql);
         } catch (\Exception $e) {
             halt($sql . $e);
-        }
-        if ($op == 'insert') {
-            $res = $this->getLastInsId();
         }
         return $res;
     }
@@ -219,7 +217,7 @@ class Db
             exit('插入数据不能为空');
         }
         $sql = 'INSERT INTO ' . self::$table . '(' . implode(',', array_keys($data)) . ') VALUES(' . implode(',', array_values($data)) . ')';
-        return $this->doExec($sql, 'insert');
+        return $this->doExec($sql);
     }
 
     /**
@@ -378,7 +376,7 @@ class Db
      */
     public function select()
     {
-        $sql = 'SELECT ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . ' ' . trim($this->order) . ' ' . trim($this->limit) . " " . trim($this->group);
+        $sql = 'SELECT ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . ' ' . trim($this->order) . ' ' . trim($this->limit) . " " . trim($this->group) . " " . trim($this->having);
         $this->clear = 1;
         $this->clear();
         $res = $this->doQuery(trim($sql));
@@ -391,7 +389,7 @@ class Db
      */
     public function find()
     {
-        $sql = "SELECT " . trim($this->field) . " FROM " . self::$table . " " . trim($this->where) . " " . trim($this->order) . " " . trim(" LIMIT 1") . " " . trim($this->group);
+        $sql = "SELECT " . trim($this->field) . " FROM " . self::$table . " " . trim($this->where) . " " . trim($this->order) . " " . trim(" LIMIT 1") . " " . trim($this->group) . " " . trim($this->having);
         $this->clear = 1;
         $this->clear();
         return $this->doQuery(trim($sql), false);
@@ -466,15 +464,16 @@ class Db
     {
         switch ($field) {
             case ($field == 'neq' or $field == '!='):
-                return '!=';
+                return ' != ';
             case ($field == 'eq' or $field == '='):
-                return '=';
+                return ' = ';
             case ($field == 'like' or $field == '%'):
-                return 'LIKE';
+                return ' LIKE ';
             default:
                 return $field;
         }
     }
+    
 
     /**
      * 设置条件
@@ -676,6 +675,21 @@ class Db
         }
 
         $this->group = ' GROUP BY ' . $option;
+
+        return $this;
+    }
+
+    /**
+     * @param $option
+     * @return $this
+     */
+    public function having($option)
+    {
+        if ($this->clear > 0) {
+            $this->clear();
+        }
+
+        $this->having = ' HAVING ' . $option;
 
         return $this;
     }

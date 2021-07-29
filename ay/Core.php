@@ -51,7 +51,7 @@ final class Core
                 if (file_exists(APP_PATH . MODE . "/function.php")) {
                     require_once APP_PATH . MODE . "/function.php";
                 }
-                call_user_func_array(array($controllerS, $action), []);
+                echo call_user_func_array(array($controllerS, $action), []);
                 exit;
             } else {
                 halt('不存在:' . $action . ' 方法');
