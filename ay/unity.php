@@ -6,57 +6,16 @@
  * @copyright Copyright (c) 2018
  */
 
+use ay\drive\View;
+
 /**
  * 跳转函数
  * @param string $str 地址
- * @return string $s 字符
+ * @return null $data 参数
  */
-function url($str, $s = '')
+function url($str, $data = null)
 {
-
-
-    $arr = explode('/', trim($str, '/'));
-    $len = count($arr);
-
-    if ($len == 3) {
-        $mode = $arr[0];
-    } else {
-        $mode = MODE;
-    }
-    if (defined('BIND')) {
-        switch (true) {
-            case (BIND == $arr[0] and $len == 3) :
-                $mode = BIND;
-                break;
-            case ($len == 3) :
-                $mode = $arr[0];
-                break;
-            case (BIND == MODE) :
-                $mode = CIND . '.php';
-                break;
-            default :
-                $mode = MODE;
-        }
-    }
-
-    switch ($len) {
-        case 3 :
-            $path = URL . '/' . $mode . '/' . $arr[1] . '/' . $arr[2];
-            break;
-        case 2 :
-            $path = URL . '/' . $mode . '/' . $arr[0] . '/' . $arr[1];
-            break;
-        default :
-            $path = URL . '/' . $mode . '/' . CONTROLLER . '/' . $arr[0];
-    }
-
-    if (!empty($s)) {
-        $path .= $s;
-    } else {
-        $path .= '.' . C('REWRITE');
-    }
-
-    return $path;
+    return \ay\drive\Url::instance()->get($str, $data);
 }
 
 /**
@@ -154,16 +113,15 @@ function controller($name, $vae = '')
 /**
  * @param string $filename
  * @param null $data
- * @throws Exception
  */
 function view($filename = '', $data = null)
 {
-    \ay\lib\View::view($filename, $data);
+    View::view($filename, $data);
 }
 
 function assign($name, $value)
 {
-    \ay\lib\View::assign($name, $value);
+    View::assign($name, $value);
 }
 
 /**
@@ -204,33 +162,6 @@ function import($file, $path)
 }
 
 /**
- * 获得浏览器版本
- */
-function browserInfo()
-{
-    $agent = strtolower($_SERVER["HTTP_USER_AGENT"]);
-    $browser = null;
-    if (strstr($agent, 'msie 9.0')) {
-        $browser = 'msie9';
-    } elseif (strstr($agent, 'msie 8.0')) {
-        $browser = 'msie8';
-    } elseif (strstr($agent, 'msie 7.0')) {
-        $browser = 'msie7';
-    } elseif (strstr($agent, 'msie 6.0')) {
-        $browser = 'msie6';
-    } elseif (strstr($agent, 'firefox')) {
-        $browser = 'firefox';
-    } elseif (strstr($agent, 'chrome')) {
-        $browser = 'chrome';
-    } elseif (strstr($agent, 'safari')) {
-        $browser = 'safari';
-    } elseif (strstr($agent, 'opera')) {
-        $browser = 'opera';
-    }
-    return $browser;
-}
-
-/**
  * 载入或设置配置顶
  * @param string $name 配置名
  * @param string $value 配置值
@@ -265,54 +196,6 @@ function C($name = null, $value = null)
     }
 }
 
-/**
- * 快速缓存 以文件形式缓存
- * @param array $name 缓存KEY
- * @param array|string $value 删除缓存
- * @param int $time 缓存时间
- * @return bool
- */
-function F($name, $value = '', $time = 3600)
-{
-
-    static $_cache = [];
-    $path = TEMP . 'cache.txt';
-
-    if (!isset($name[1])) $name[1] = 0;
-
-    if (is_file($path)) {
-        $_cache = json_decode(file_get_contents($path), true);
-    } else {
-        file_put_contents($path, '');
-    }
-
-    if ($name == 'delAll') {
-        file_put_contents($path, '');
-        return true;
-    } else if ($value == 'del') {
-        if (isset($name[1]) and !empty($name[1])) {
-            unset($_cache[$name[0]][$name[1]]);
-        } else {
-            unset($_cache[$name[0]]);
-        }
-        file_put_contents($path, json_encode($_cache));
-        return true;
-    } else if (is_int($value)) {
-        if (isset($_cache[$name[0]][$name[1]]) and ($_cache[$name[0]][$name[1]]['time'] + $value) > time()) {
-            return $_cache[$name[0]][$name[1]]['value'];
-        } else {
-            unset($_cache[$name[0]][$name[1]]);
-            file_put_contents($path, json_encode($_cache));
-            return false;
-        }
-    } else {
-
-        $_cache[$name[0]][$name[1]] = ['value' => $value, 'time' => time()];
-        file_put_contents($path, json_encode($_cache));
-        return true;
-    }
-
-}
 
 /**
  * 跳转网址
@@ -360,11 +243,15 @@ function setHttpCode($code)
     $state = [
         200 => 'OK', // Success 2xx
         // Redirection 3xx
-        301 => 'Moved Permanently', 302 => 'Moved Temporarily ',
+        301 => 'Moved Permanently',
+        302 => 'Moved Temporarily ',
         // Client Error 4xx
-        400 => 'Bad Request', 403 => 'Forbidden', 404 => 'Not Found',
+        400 => 'Bad Request',
+        403 => 'Forbidden',
+        404 => 'Not Found',
         // Server Error 5xx
-        500 => 'Internal Server Error', 503 => 'Service Unavailable',
+        500 => 'Internal Server Error',
+        503 => 'Service Unavailable',
     ];
     if (isset($state[$code])) {
         header('HTTP/1.1 ' . $code . ' ' . $state[$code]);
@@ -396,12 +283,7 @@ function print_const()
     foreach ($define['user'] as $k => $d) {
         $const[$k] = $d;
     }
-    p($const);
-}
-
-function D()
-{
-
+    dump($const);
 }
 
 /**
@@ -411,37 +293,7 @@ function D()
 
 function halt($msg, $file = '', $line = '')
 {
-    \ay\drive\Log::error($msg . ' [' . $file . '(' . $line . ')]');
-    if ($_SERVER['REQUEST_METHOD'] == 'cli') {
-        exit($msg);
-    } else if (C('DEBUG')) {
-        $e['message'] = $msg;
-        $e['file'] = $file;
-        $e['line'] = $line;
-        include_once TEMPLATE . '/error.html';
-        exit;
-    } else {
-        setHttpCode(500);
-        include_once TEMPLATE . '/close.html';
-        exit;
-    }
-}
-
-function download($con, $name, $type = 'file')
-{
-    $length = ($type == 'file') ? filesize($con) : strlen($con);
-    header("Content-type: application/octet-stream");
-    header("Accept-Ranges: bytes");
-    header("Content-Length: " . $length);
-    header('Pragma: cache');
-    header('Cache-Control: public, must-revalidate, max-age=0');
-    header('Content-Disposition: attachment; filename="' . urlencode($name) . '"; charset=utf-8'); //下载显示的名字,注意格式
-    header("Content-Transfer-Encoding: binary ");
-    if ($type == 'file') {
-        readfile($con);
-    } else {
-        echo $con;
-    }
+    \ay\drive\Error::instance()->init()->halt($msg, $file, $line);
 }
 
 /**
@@ -467,52 +319,9 @@ function tree($arr, $id = 'id', $pid = 'pid')
     return $tree;
 }
 
-// 转义危险字符 并 判断违禁词
-function clean($data, $filter)
-{
-    if (!get_magic_quotes_gpc()) {
-        $data = addslashes($data);
-    }
-    $data = strtolower($data);
-    $data = str_replace("_", "\_", $data);
-    $data = str_replace("%", "\%", $data);
-    $data = str_replace("*", "\*", $data);
-    $data = str_replace("select", "\select", $data);
-    $data = str_replace("insert", "\insert", $data);
-    $data = str_replace("delete", "\delete", $data);
-    $data = str_replace("update", "\update", $data);
-    $data = nl2br($data);
-    $data = htmlspecialchars($data);
-
-    $arr = explode('|', $filter);
-    foreach ($arr as $item) {
-        if (strstr($data, $item)) \ay\lib\Json::msg(400, '含有违禁词');
-    }
-    return $data;
-
-}
-
-function summary($content, $count)
-{
-    $content = preg_replace("@<script(.*?)</script>@is", "", $content);
-    $content = preg_replace("@<iframe(.*?)</iframe>@is", "", $content);
-    $content = preg_replace("@<style(.*?)</style>@is", "", $content);
-    $content = preg_replace("@<(.*?)>@is", "", $content);
-    $content = str_replace(PHP_EOL, '', $content);
-    $space = array(" ", "　", "  ", " ", " ");
-    $go_away = array("", "", "", "", "");
-    $content = str_replace($space, $go_away, $content);
-    $res = mb_substr($content, 0, $count, 'UTF-8');
-    if (mb_strlen($content, 'UTF-8') > $count) {
-        $res = $res . "...";
-    }
-    return $res;
-}
-
 function lastTime($date, $template)
 {
     $s = (time() - $date) / 60;
-    //echo $s;exit;
     switch ($s) {
         case ($s < 60) :
             $msg = intval($s) . '分钟前';
@@ -549,4 +358,51 @@ function getIp()
         $ip = $_SERVER['HTTP_X_REAL_IP'];
     }
     return $ip;
+}
+
+function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0)
+{
+    $ckey_length = 4;
+
+    $key = md5($key ? $key : 'anderyly');
+    $keya = md5(substr($key, 0, 16));
+    $keyb = md5(substr($key, 16, 16));
+    $keyc = $ckey_length ? ($operation == 'DECODE' ? substr($string, 0, $ckey_length) :
+        substr(md5(microtime()), -$ckey_length)) : '';
+    $cryptkey = $keya . md5($keya . $keyc);
+    $key_length = strlen($cryptkey);
+    $string = $operation == 'DECODE' ? base64_decode(substr($string, $ckey_length)) :
+        sprintf('%010d', $expiry ? $expiry + time() : 0) . substr(md5($string . $keyb), 0, 16) . $string;
+    $string_length = strlen($string);
+    $result = '';
+    $box = range(0, 255);
+    $rndkey = array();
+    for ($i = 0; $i <= 255; $i++) {
+        $rndkey[$i] = ord($cryptkey[$i % $key_length]);
+    }
+    for ($j = $i = 0; $i < 256; $i++) {
+        $j = ($j + $box[$i] + $rndkey[$i]) % 256;
+        $tmp = $box[$i];
+        $box[$i] = $box[$j];
+        $box[$j] = $tmp;
+    }
+    for ($a = $j = $i = 0; $i < $string_length; $i++) {
+        $a = ($a + 1) % 256;
+        $j = ($j + $box[$a]) % 256;
+        $tmp = $box[$a];
+        $box[$a] = $box[$j];
+        $box[$j] = $tmp;
+        $result .= chr(ord($string[$i]) ^ ($box[($box[$a] + $box[$j]) % 256]));
+    }
+    if ($operation == 'DECODE') {
+
+        if ((substr($result, 0, 10) == 0 || substr($result, 0, 10) - time() > 0) &&
+            substr($result, 10, 16) == substr(md5(substr($result, 26) . $keyb), 0, 16)) {
+            return substr($result, 26);
+        } else {
+            return '';
+        }
+    } else {
+        return $keyc . str_replace('=', '', base64_encode($result));
+    }
 }

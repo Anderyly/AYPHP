@@ -17,9 +17,9 @@ class AES
     protected $options;
 
 
-    public function __construct($key, $method = 'AES-128-ECB', $iv = '', $options = 0)
+    public function __construct($key = 'anderyly', $method = 'AES-128-ECB', $iv = '', $options = 0)
     {
-        $this->secret_key = isset($key) ? $key : 'anderyly';
+        $this->secret_key = $key;
         $this->method = $method;
         $this->iv = $iv;
         $this->options = $options;
@@ -27,7 +27,7 @@ class AES
     
     public static function instance()
     {
-        return new self;
+        return new self();
     }
 
 

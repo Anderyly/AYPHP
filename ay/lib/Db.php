@@ -20,24 +20,24 @@ class Db
     private $dbName;
     private $user;
     private $pass;
-    private $sql = false; //最后一条sql语句
+    private $group = '';
+    private static $sql = false; //最后一条sql语句
     private $where = '';
     private $order = '';
     private $limit = '';
     private $field = '*';
     private $clear = 0; //状态，0表示查询条件干净，1表示查询条件污染
-    private $trans = 0; //事务指令数
+    private static $trans = 0; //事务指令数
 
     /**
      * 初始化
      * Dc constructor.
      * @param null $conf 数据库配置
-     * @throws \Exception
      */
     public function __construct($conf = null)
     {
 
-        class_exists('PDO') or exit("PDO模块不存在");
+        class_exists('PDO') or halt("PDO模块不存在");
         if (is_null($conf)) {
             $conf = C();
         }
@@ -76,15 +76,22 @@ class Db
     }
 
     /**
+     * @return object
+     */
+    public static function instance()
+    {
+        return new self();
+    }
+
+    /**
      * 设置数据表名
      * @param $table
-     * @return Db
-     * @throws \Exception
+     * @return object
      */
     public static function name($table)
     {
         if (empty($table)) {
-            exit('不能设置数据表名为空');
+            halt('不能设置数据表名为空');
         }
 
         $tableS = C('DB_PRE') . $table;
@@ -95,13 +102,12 @@ class Db
     /**
      * 设置数据表名
      * @param $table
-     * @return Db
-     * @throws \Exception
+     * @return object
      */
     public static function table($table)
     {
         if (empty($table)) {
-            exit('不能设置数据表名为空');
+            halt('不能设置数据表名为空');
         }
 
         self::$table = self::addChar($table);
@@ -111,13 +117,12 @@ class Db
     /**
      * 设置当前数据表别名
      * @param $alias
-     * @return $this
-     * @throws \Exception
+     * @return object
      */
-    public function alias($alias)
+    public function alias($alias): object
     {
         if (empty($alias) or empty(self::$table)) {
-            exit('数据库表名设置别名为空');
+            halt('数据库表名设置别名为空');
         }
 
         self::$table .= ' AS ' . $alias;
@@ -126,12 +131,7 @@ class Db
 
     private static function addChar($value, $num = 0)
     {
-
-        if (strpos($value, "`") === false and $num == 'where' and strstr($value, '.')) {
-            $data = $value;
-        } else if ($value == '*' or strpos($value, '(') !== false or strpos($value, "`") !== false) {
-            $data = $value;
-        } else if (strpos($value, "`") === false and $num == 1 and !is_int($value)) {
+        if (strpos($value, "`") === false and $num == 1 and !is_int($value)) {
             $data = "'" . trim($value) . "'";
         } else if (strpos($value, "`") === false and !is_int($value) and $num != 1) {
             $data = "`" . trim($value) . "`";
@@ -146,12 +146,20 @@ class Db
      * @param string $sql
      * @return mixed
      */
-    public function doQuery($sql = '')
+    public function doQuery($sql = '', $options = true)
     {
-        $this->sql = $sql;
-        // echo $sql;
-        // exit;
-        $result = self::$db->query($this->sql)->fetchAll(\PDO::FETCH_ASSOC);
+        self::$sql = $sql;
+        try {
+            if ($options) {
+                $result = self::$db->query(self::$sql)->fetchAll(\PDO::FETCH_ASSOC);
+            } else {
+                $result = self::$db->query(self::$sql)->fetch(\PDO::FETCH_ASSOC);
+            }
+        } catch (\Exception $e) {
+            halt($sql . $e);
+        }
+
+
         return $result;
     }
 
@@ -160,11 +168,18 @@ class Db
      * @param string $sql
      * @return mixed
      */
-    public function doExec($sql = '')
+    public function doExec($sql = '', $op = '')
     {
-        $this->sql = $sql;
-//        echo $sql;exit;
-        return self::$db->exec($this->sql);
+        self::$sql = $sql;
+        try {
+            $res = self::$db->exec(self::$sql);
+        } catch (\Exception $e) {
+            halt($sql . $e);
+        }
+        if ($op == 'insert') {
+            $res = $this->getLastInsId();
+        }
+        return $res;
     }
 
     /**
@@ -184,11 +199,11 @@ class Db
 
     /**
      * 获取上一次查询的sql
-     * @return bool
+     * @return string
      */
     public function getLastSql()
     {
-        return $this->sql;
+        return self::$sql;
     }
 
     /**
@@ -203,9 +218,8 @@ class Db
         if (!$data) {
             exit('插入数据不能为空');
         }
-
         $sql = 'INSERT INTO ' . self::$table . '(' . implode(',', array_keys($data)) . ') VALUES(' . implode(',', array_values($data)) . ')';
-        return $this->doExec($sql);
+        return $this->doExec($sql, 'insert');
     }
 
     /**
@@ -228,7 +242,7 @@ class Db
         $value = rtrim($value, ', (');
 
         $sql = 'INSERT INTO ' . self::$table . '(' . implode(',', array_keys($data[0])) . ') VALUES ' . $value;
-        return $this->doExec($sql);
+        return $this->doExec($sql, false);
     }
 
     /**
@@ -238,8 +252,8 @@ class Db
     public function getLastInsId()
     {
         $sql = 'SELECT LAST_INSERT_ID()';
-        $res = $this->doQuery($sql);
-        return $res;
+        $res = $this->doQuery($sql, false);
+        return isset($res['LAST_INSERT_ID()']) ? $res['LAST_INSERT_ID()'] : 'false';
     }
 
     /**
@@ -278,12 +292,13 @@ class Db
             return;
         }
 
-        $valArr = array();
+        $valArr = [];
         foreach ($data as $k => $v) {
             $valArr[] = $k . '=' . $v;
         }
         $valStr = implode(',', $valArr);
         $sql = 'UPDATE ' . trim(self::$table) . ' SET ' . trim($valStr) . ' ' . trim($this->where);
+
         return $this->doExec($sql);
     }
 
@@ -307,7 +322,7 @@ class Db
                 return;
             }
 
-            $valArr = array();
+            $valArr = [];
             foreach ($data as $k => $v) {
                 $valArr[] = $k . '=' . $k . '+' . $v;
             }
@@ -342,7 +357,7 @@ class Db
                 return;
             }
 
-            $valArr = array();
+            $valArr = [];
             foreach ($data as $k => $v) {
                 $valArr[] = $k . '=' . $k . '-' . $v;
             }
@@ -363,7 +378,7 @@ class Db
      */
     public function select()
     {
-        $sql = 'SELECT ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . ' ' . trim($this->order) . ' ' . trim($this->limit);
+        $sql = 'SELECT ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . ' ' . trim($this->order) . ' ' . trim($this->limit) . " " . trim($this->group);
         $this->clear = 1;
         $this->clear();
         $res = $this->doQuery(trim($sql));
@@ -376,72 +391,59 @@ class Db
      */
     public function find()
     {
-        $sql = "SELECT " . trim($this->field) . " FROM " . self::$table . " " . trim($this->where) . " " . trim($this->order) . " " . trim(" LIMIT 1");
+        $sql = "SELECT " . trim($this->field) . " FROM " . self::$table . " " . trim($this->where) . " " . trim($this->order) . " " . trim(" LIMIT 1") . " " . trim($this->group);
         $this->clear = 1;
         $this->clear();
-        $res = $this->doQuery(trim($sql));
-        return isset($res[0]) ? $res[0] : [];
+        return $this->doQuery(trim($sql), false);
+
     }
 
     /**
      * 设置条件
-     * @param $option
+     * @param string | array $option
      * @param string $where
      * @param string $value
      * @return $this
      */
-    public function where($option, $where = '', $value = '')
+    public function where($option, $where = null, $value = null)
     {
         if ($this->clear > 0) {
             $this->clear();
         }
 
+        // 判断之前是否使用where语句
         if (strpos($this->where, 'WHERE')) {
             $this->where .= ' AND ';
-            $ss = 1;
+            $useWhere = 1;
         } else {
             $this->where = ' WHERE ';
         }
-        $qz = '(';
+
+        // 判断第一个参数为字符
         if (is_string($option)) {
-
-            if (!empty($value)):
-                switch ($where) {
-                    case ($where == 'neq' or $where == '!='):
-                        $tj = '!=';
-                        break;
-                    case ($where == 'eq' or $where == '='):
-                        $tj = '=';
-                        break;
-                    case ($where == 'like' or $where == '%'):
-                        $tj = 'LIKE';
-                        break;
-                    default:
-                        $tj = $where;
-                        break;
-                }
-                $this->where .= $option . $tj . "'" . $value . "'";
+            // 当三个参数都为字符串
+            if (!is_null($value)):
+                $this->where .= $option . $this->whereTo($where) . $this->addChar($value, 1);
             endif;
-
-            if (empty($value)) {
-                if (!strpos($where, "'")):
-                    $where = "'" . $where . "'";
-                endif;
-
-                $this->where .= $option . '=' . $where;
-            } else if (empty($where)) {
+            // 当第三个参数不存在
+            if (is_null($value)) {
+                $this->where .= $option . '=' . $this->addChar($where, 1);
+            } else if (is_null($where)) {
+                // 当第二个参数不存在
                 $this->where .= $option;
             }
-        } else if (is_array($option)) {
-            foreach ($option as $k => $v) {
+        } else if (is_array($option)) {     // 当第一个参数为数组
+            $qz = "(";
+
+            foreach ($option as $v) {
+                // 当第一个参数循环后为数组
                 if (is_array($v)) {
                     if (strstr($this->where, '(')) {
                         $qz = ' ';
                     }
-
-                    if (isset($ss)) {
+                    if (isset($useWhere)) {
                         $qz = '(';
-                        unset($ss);
+                        unset($useWhere);
                     }
                     $condition = $qz . $this->addChar($v[0], 'where') . ' ' . $v[1] . ' ' . $this->addChar($v[2], 1);
                 } else {
@@ -449,18 +451,68 @@ class Db
                     $cc = 1;
                     break;
                 }
-
                 $logIc = isset($v[3]) ? ' ' . $v[3] : ' AND';
                 $this->where .= isset($mark) ? $logIc . $condition : $condition;
                 $mark = 1;
-
             }
             if (!isset($cc)) {
                 $this->where .= ')';
             }
+        }
+        return $this;
+    }
 
+    private function whereTo($field)
+    {
+        switch ($field) {
+            case ($field == 'neq' or $field == '!='):
+                return '!=';
+            case ($field == 'eq' or $field == '='):
+                return '=';
+            case ($field == 'like' or $field == '%'):
+                return 'LIKE';
+            default:
+                return $field;
+        }
+    }
+
+    /**
+     * 设置条件
+     * @param string $option
+     * @param string | array $value
+     * @return $this
+     */
+    public function whereIn($option, $value, $tj = 'AND')
+    {
+        if ($this->clear > 0) {
+            $this->clear();
         }
 
+        // 判断之前是否使用where语句
+        if (strpos($this->where, 'WHERE')) {
+            $this->where .= ' ' . $tj . ' ';
+            $useWhere = 1;
+        } else {
+            $this->where = ' WHERE ';
+        }
+        $arr = explode(',', $value);
+        $str = '';
+        foreach ($arr as $v) {
+            $str .= $this->addChar($v, 1) . ',';
+        }
+        $str = rtrim($str, ',');
+
+        // 判断第一个参数为字符
+        if (is_string($value)) {
+            $this->where .= $option . " IN (" . $str . ")";
+        } else if (is_array($value)) {
+            $str = '';
+            foreach ($value as $v) {
+                $str .= $this->addChar($v, 1) . ',';
+            }
+            $str = rtrim($str, ',');
+            $this->where .= $option . " IN (" . $str . ")";
+        }
         return $this;
     }
 
@@ -471,7 +523,7 @@ class Db
      * @param string $value
      * @return $this
      */
-    public function whereOr($option, $where = '', $value = '')
+    public function whereOr($option, $where = null, $value = null)
     {
         if ($this->clear > 0) {
             $this->clear();
@@ -483,44 +535,25 @@ class Db
         } else {
             $this->where = ' WHERE ';
         }
-        $qz = '(';
-        if (is_string($option)) {
 
-            if (!empty($value)):
-                switch ($where) {
-                    case ($where == 'neq' or $where == '!='):
-                        $tj = '!=';
-                        break;
-                    case ($where == 'eq' or $where == '='):
-                        $tj = '=';
-                        break;
-                    case ($where == 'like' or $where == '%'):
-                        $tj = 'LIKE';
-                        break;
-                    default:
-                        $tj = $where;
-                        break;
-                }
-                $this->where .= $option . $tj . "'" . $value . "'";
+        if (is_string($option)) {
+            if (!is_null($value)):
+                $this->where .= $option . $this->whereTo($where) . $this->addChar($value, 1);
             endif;
 
-            if (empty($value)) {
-                if (!strpos($where, "'")):
-                    $where = "'" . $where . "'";
-                endif;
-
-                $this->where .= $option . '=' . $where;
-            } else if (empty($where)) {
+            if (is_null($value)) {
+                $this->where .= $option . '=' . $this->addChar($where, 1);
+            } else if (is_null($where)) {
                 $this->where .= $option;
             }
         } else if (is_array($option)) {
-            foreach ($option as $k => $v) {
+            $qz = '(';
+            foreach ($option as $v) {
                 $logIc = ' AND';
                 if (is_array($v)) {
                     if (strstr($this->where, '(')) {
                         $qz = ' ';
                     }
-
                     if (isset($ss)) {
                         $qz = '(';
                         unset($ss);
@@ -556,12 +589,11 @@ class Db
     public function tbFields()
     {
         $sql = 'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME="' . str_replace('`', '', self::$table) . '" AND TABLE_SCHEMA="' . $this->dbName . '"';
-        $stmt = self::$db->prepare($sql);
-        $stmt->execute();
-        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        $ret = array();
-        foreach ($result as $key => $value) {
-            $ret[$value['COLUMN_NAME']] = 1;
+        $res = $this->doQuery($sql);
+
+        $ret = [];
+        foreach ($res as $key => $value) {
+            $ret[] = $value['COLUMN_NAME'];
         }
         return $ret;
     }
@@ -578,12 +610,17 @@ class Db
         }
 
         $table_column = $this->tbFields();
+
+        foreach ($table_column as $k => $v) {
+            unset($table_column[$k]);
+            $table_column[$v] = $k;
+        }
+
         $ret = [];
         foreach ($data as $key => $val):
             if (!is_scalar($val)) {
                 continue;
             }
-
             if (array_key_exists($key, $table_column)):
                 $key = $this->addChar($key);
                 if (is_int($val)) {
@@ -598,7 +635,6 @@ class Db
                 $ret[$key] = $val;
             endif;
         endforeach;
-
         return $ret;
     }
 
@@ -626,6 +662,21 @@ class Db
                 $mark = 1;
             }
         }
+        return $this;
+    }
+
+    /**
+     * @param $option
+     * @return $this
+     */
+    public function group($option)
+    {
+        if ($this->clear > 0) {
+            $this->clear();
+        }
+
+        $this->group = ' GROUP BY ' . $option;
+
         return $this;
     }
 
@@ -660,10 +711,6 @@ class Db
         if ($this->clear > 0) {
             $this->clear();
         }
-
-//        if (is_string($field)) $field = explode(',', $field);
-        //        $nField = array_map(array($this, 'addChar'), $field);
-        //        $this->field = implode(',', $nField);
         $this->field = $field;
         return $this;
     }
@@ -677,6 +724,9 @@ class Db
      */
     public function join($tab, $where = '', $join = 'INNER')
     {
+        if ($this->clear > 0) {
+            $this->clear();
+        }
         if (is_array($tab)) {
             foreach ($tab as $k => $v):
                 $table = $k . ' AS ' . $v;
@@ -695,9 +745,12 @@ class Db
      */
     public function count()
     {
-        $sql = 'SELECT count(' . trim($this->field) . ') FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
-        $rows = self::$db->query($sql)->fetch();
-        return $rows[0];
+        if ($this->clear > 0) {
+            $this->clear();
+        }
+        $sql = 'SELECT count(' . trim($this->field) . ') AS ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
+        $rows = $this->doQuery($sql, false);
+        return $rows[trim($this->field)];
     }
 
     /**
@@ -706,9 +759,12 @@ class Db
      */
     public function sum()
     {
-        $sql = 'SELECT SUM(' . trim($this->field) . ') FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
-        $rows = self::$db->query($sql)->fetch();
-        return $rows[0];
+        if ($this->clear > 0) {
+            $this->clear();
+        }
+        $sql = 'SELECT SUM(' . trim($this->field) . ') AS ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
+        $rows = $this->doQuery($sql, false);
+        return $rows[trim($this->field)];
     }
 
     /**
@@ -739,11 +795,11 @@ class Db
     public function startTrans()
     {
         //数据rollback 支持
-        if ($this->trans == 0) {
+        if (self::$trans == 0) {
             self::$db->beginTransaction();
         }
 
-        $this->trans++;
+        self::$trans++;
         return;
     }
 
@@ -754,9 +810,9 @@ class Db
     public function commit()
     {
         $result = true;
-        if ($this->trans > 0) {
+        if (self::$trans > 0) {
             $result = self::$db->commit();
-            $this->trans = 0;
+            self::$trans = 0;
         }
         return $result;
     }
@@ -768,9 +824,9 @@ class Db
     public function rollback()
     {
         $result = true;
-        if ($this->trans > 0) {
+        if (self::$trans > 0) {
             $result = self::$db->rollback();
-            $this->trans = 0;
+            self::$trans = 0;
         }
         return $result;
     }

@@ -10,7 +10,7 @@
 $GLOBALS['_startTime'] = microtime(true);
 
 // 系统常量定义
-defined('VERSION') or define('VERSION', '1.2');
+defined('VERSION') or define('VERSION', '1.3');
 defined('AY') or define('AY', dirname(str_replace('\\', '/', __FILE__)) . '/');
 defined('ROOT') or define('ROOT', dirname(AY) . '/');
 defined('COMMON') or define('COMMON', AY . 'common/');
@@ -26,20 +26,10 @@ defined('TEMP') or define('TEMP', ROOT . 'temp/');
 defined('CACHE') or define('CACHE', TEMP . 'cache/');
 defined('COMPILE') or define('COMPILE', TEMP . 'compile/');
 defined('LOG') or define('LOG', TEMP . 'log/');
-define('IS_POST', ($_SERVER['REQUEST_METHOD'] == 'POST') ? true : false);
-define('IS_GET', ($_SERVER['REQUEST_METHOD'] == 'GET') ? true : false);
 
 $domain = $_SERVER['HTTP_HOST'];
 $url = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? 'https://' . $domain : 'http://' . $domain;
 defined('URL') or define('URL', $url);
-
-if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) and $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpREquest') {
-    $is_ajax = true;
-} else {
-    $is_ajax = false;
-}
-
-defined('IS_AJAX') or define('IS_AJAX', $is_ajax);
 
 // 用户目录常量
 defined('APP_PATH') or define('APP_PATH', ROOT . APP_NAME . '/');
@@ -77,8 +67,9 @@ if (C('DEBUG')) {
     ini_set('display_errors', 'off');
 }
 
+\ay\drive\Error::instance()->init();
 
-// 加载用户自定义配置
+// 加载配置
 $userCommonFile = scandir(APP_CONFIG);
 foreach ($userCommonFile as $v) {
     if (!strstr($v, '.php') or $v == '.' or $v == '..') {

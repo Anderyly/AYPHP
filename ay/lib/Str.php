@@ -11,12 +11,70 @@ namespace ay\lib;
 class Str
 {
 
+    public static function instance()
+    {
+        return new self();
+    }
+
+    /**
+     * 截取摘要
+     * @param string $content 内容
+     * @param int $count 字数
+     * @return string
+     */
+    public function summary($content, $count)
+    {
+        $content = preg_replace("@<script(.*?)</script>@is", "", $content);
+        $content = preg_replace("@<iframe(.*?)</iframe>@is", "", $content);
+        $content = preg_replace("@<style(.*?)</style>@is", "", $content);
+        $content = preg_replace("@<(.*?)>@is", "", $content);
+        $content = str_replace(PHP_EOL, '', $content);
+        $space = array(" ", "　", "  ", " ", " ");
+        $go_away = array("", "", "", "", "");
+        $content = str_replace($space, $go_away, $content);
+        $res = mb_substr($content, 0, $count, 'UTF-8');
+        if (mb_strlen($content, 'UTF-8') > $count) {
+            $res = $res . "...";
+        }
+        return $res;
+    }
+
+    /**
+     * 转义危险字符 并 判断违禁词
+     * @param string $data 内容
+     * @param array $filter 危险字符数组
+     * @return string
+     */
+    public function clean($data, $filter)
+    {
+        if (!get_magic_quotes_gpc()) {
+            $data = addslashes($data);
+        }
+        $data = strtolower($data);
+        $data = str_replace("_", "\_", $data);
+        $data = str_replace("%", "\%", $data);
+        $data = str_replace("*", "\*", $data);
+        $data = str_replace("select", "\select", $data);
+        $data = str_replace("insert", "\insert", $data);
+        $data = str_replace("delete", "\delete", $data);
+        $data = str_replace("update", "\update", $data);
+        $data = nl2br($data);
+        $data = htmlspecialchars($data);
+
+        $arr = explode('|', $filter);
+        foreach ($arr as $item) {
+            if (strstr($data, $item)) \ay\lib\Json::msg(400, '含有违禁词');
+        }
+        return $data;
+
+    }
+
     /**
      * gbk字符转utf8字符
      * @param void $data
      * @return void
      */
-    public static function gbkToUtf8($data)
+    public function gbkToUtf8($data)
     {
         foreach ($data as $k => $v) {
             if (is_array($v)) {
@@ -35,7 +93,7 @@ class Str
      *
      * @return string
      */
-    public static function utf8ToGbk($str)
+    public function utf8ToGbk($str)
     {
         $string = '';
         if ($str < 0x80) {
@@ -61,7 +119,7 @@ class Str
      * @param $str
      * @return string
      */
-    public static function convert($str)
+    public function convert($str)
     {
         $arr = ['０' => '0', '１' => '1', '２' => '2', '３' => '3', '４' => '4',
             '５' => '5', '６' => '6', '７' => '7', '８' => '8', '９' => '9',
@@ -92,7 +150,7 @@ class Str
     /**
      * 汉字转拼音
      */
-    public static function pinyin($_String, $charset = null)
+    public function pinyin($_String, $charset = null)
     {
         $charset = is_null($charset) ? preg_replace("/utf-8|utf8/i", "UTF-8", C("CHARSET")) : $charset;
         $_DataKey = "a|ai|an|ang|ao|ba|bai|ban|bang|bao|bei|ben|beng|bi|bian|biao|bie|bin|bing|bo|bu|ca|cai|can|cang|cao|ce|ceng|cha" .
@@ -169,7 +227,7 @@ class Str
     /**
      * 获得拼音字符串
      */
-    private static function getPinyin($_Num, $_Data)
+    private function getPinyin($_Num, $_Data)
     {
         ;
         if ($_Num > 0 && $_Num < 160) {
@@ -191,7 +249,7 @@ class Str
      * @param $string
      * @return string|string[]|null
      */
-    public static function remove($string)
+    public function remove($string)
     {
         $string = self::convert($string);
         $preg = "/[,.!;:<>\?'\"@#$%^&*\(\)\-_\+=\|\\\{\}\[\]\/`]/i";
@@ -202,7 +260,7 @@ class Str
      * 生成订单号
      * @return string
      */
-    public static function order($pix = '')
+    public function order($pix = '')
     {
         $order_id_main = date('YmdHis') . rand(10000000, 99999999);
         $order_id_len = strlen($order_id_main);
@@ -219,7 +277,7 @@ class Str
      * @param int $len
      * @return string
      */
-    public static function random($len = 12)
+    public function random($len = 12)
     {
         $str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         $strLen = strlen($str);
@@ -235,7 +293,7 @@ class Str
      * @param string var
      * @return string
      */
-    public static function guid($var = '')
+    public function guid($var = '')
     {
         if (function_exists('com_create_guid')) {
             return com_create_guid();
@@ -262,7 +320,7 @@ class Str
         }
     }
 
-    public static function unHtml($content)
+    public function unHtml($content)
     {
         $content = htmlspecialchars($content);
         $content = str_replace(chr(13), "<br>", $content);

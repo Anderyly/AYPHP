@@ -2,10 +2,10 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link https://rmc.ink/
+ * @link http://vclove.cn/
  * @copyright Copyright (c) 2018
  */
 
-define('APP_NAME', 'app');
+return [
 
-include "ay/ay.php";
+];

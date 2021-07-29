@@ -18,39 +18,46 @@ class Validator
             halt('param is not array');
         }
 
+        // 获取用户自定义验证
+        $path = APP_PATH . MODE . '/validator/' . CONTROLLER . '.php';
+        if (file_exists($path)) {
+            $userConfig = require_once $path;
+        } else {
+            $userConfig = [];
+        }
+
         foreach ($param as $k => $v):
             if (empty($v)) {
                 continue;
             }
 
             $arr = explode('|', $v);
+
             foreach ($arr as $v1):
+
                 switch ($v1) {
                     case 'require':
                         if (!isset($data[$k])) {
-                            $msg = $k . '不存在';
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '不存在');
                         }
-
                         break;
                     case 'empty':
                         if (empty($data[$k])) {
-                            $msg = $k . '不能为空';
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '不能为空');
                         }
-
                         break;
                     case (strstr($v1, 'max')):
                         $len = strlen($data[$k]);
                         $strLen = substr($v1, strripos($v1, ':') + 1);
                         if ($strLen < $len) {
-                            $msg = $k . '超过' . $strLen . '个字符';
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '超过' . $strLen . '个字符');
                         }
-
                         break;
                     case (strstr($v1, 'min')):
                         $len = strlen($data[$k]);
                         $strLen = substr($v1, strripos($v1, ':') + 1);
                         if ($strLen > $len) {
-                            $msg = $k . '低于' . $strLen . '个字符';
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '低于' . $strLen . '个字符');
                         }
 
                         break;
@@ -58,12 +65,26 @@ class Validator
                         $len = strlen($data[$k]);
                         $strLen = substr($v1, strripos($v1, ':') + 1);
                         if ($strLen != $len) {
-                            $msg = $k . '不等于' . $strLen . '个字符';
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '不等于' . $strLen . '个字符');
                         }
 
                         break;
+                    case 'mobile' :
+                        if (!self::mobile($data[$k])) {
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '手机号错误');
+                        }
+                        break;
+                    case 'card' :
+                        if (!self::cardId($data[$k])) {
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '身份证错误');
+                        }
+                        break;
+                    case 'email' :
+                        if (!self::email($data[$k])) {
+                            $msg = self::checkUserConfig($userConfig, $k, $v1, '邮箱错误');
+                        }
+                        break;
                 }
-                // echo $msg;exit;
                 if (isset($msg)) {
                     Json::msg(400, $msg);
                 }
@@ -71,6 +92,15 @@ class Validator
             endforeach;
 
         endforeach;
+    }
+
+    private static function checkUserConfig($userConfig, $k, $v1, $msg)
+    {
+        if (!isset($userConfig[ACTION][$k][$v1])) {
+            return $k . $msg;
+        } else {
+            return $userConfig[ACTION][$k][$v1];
+        }
     }
 
     /**
