@@ -8,17 +8,24 @@
 
 namespace ay\drive;
 
+use Exception;
+
 class Dir
 {
 
+    public static function instance(): Dir
+    {
+        return new self();
+    }
+
     /**
      * @param string $dir_name 目录名
-     * @return mixed|string
+     * @return string
      */
-    public static function dirPath($dir_name)
+    public function dirPath(string $dir_name): string
     {
-        $dirname = str_ireplace("\\", "/", $dir_name);
-        return substr($dirname, "-1") == "/" ? $dirname : $dirname . "/";
+        $dir_name = str_ireplace("\\", "/", $dir_name);
+        return substr($dir_name, "-1") == "/" ? $dir_name : $dir_name . "/";
     }
 
     /**
@@ -26,32 +33,32 @@ class Dir
      * @param string $file 文件名
      * @return string
      */
-    public static function getExt($file)
+    public function getExt(string $file): string
     {
         return strtolower(substr(strrchr($file, "."), 1));
     }
 
     /**
      * 遍历目录内容
-     * @param string $dirName 目录名
-     * @param string $exts 读取的文件扩展名
-     * @param int $son 是否显示子目录
+     * @param string $dir_name 目录名
+     * @param string $ext 读取的文件扩展名
+     * @param int $display 是否显示子目录
      * @param array $list
      * @return array
      */
-    public static function tree($dirName = null, $exts = '', $son = 0, $list = array())
+    public function tree(string $dir_name = '', string $ext = '', int $display = 0, array $list = []): array
     {
-        if (is_null($dirName)) {
-            $dirName = '.';
+        if (empty($dir_name)) {
+            $dir_name = '.';
         }
-        $dirPath = self::dirPath($dirName);
+        $dirPath = $this->dirPath($dir_name);
         static $id = 0;
-        if (is_array($exts)) {
-            $exts = implode("|", (array)($exts));
+        if (is_array($ext)) {
+            $ext = implode("|", (array)($ext));
         }
         foreach (glob($dirPath . '*') as $v) {
             $id++;
-            if (is_dir($v) || !$exts || preg_match("/\.($exts)/i", $v)) {
+            if (is_dir($v) || !$ext || preg_match("/\.($ext)/i", $v)) {
                 $path = str_replace("\\", "/", realpath($v)) . (is_dir($v) ? '/' : '');
                 $list[$id]['type'] = filetype($v);
                 $list[$id]['filename'] = basename($v);
@@ -59,49 +66,54 @@ class Dir
                 $list[$id]['spath'] = ltrim(str_replace(dirname($_SERVER['SCRIPT_FILENAME']), '', $path), '/');
                 $list[$id]['filemtime'] = filemtime($v);
                 $list[$id]['fileatime'] = fileatime($v);
-                $list[$id]['size'] = is_file($v) ? filesize($v) : self::get_dir_size($v);
-                $list[$id]['iswrite'] = is_writeable($v) ? 1 : 0;
-                $list[$id]['isread'] = is_readable($v) ? 1 : 0;
+                $list[$id]['size'] = is_file($v) ? filesize($v) : $this->getDirSize($v);
+                $list[$id]['is_write'] = is_writeable($v) ? 1 : 0;
+                $list[$id]['is_read'] = is_readable($v) ? 1 : 0;
             }
-            if ($son) {
+            if ($display) {
                 if (is_dir($v)) {
-                    $list = self::tree($v, $exts, $son = 1, $list);
+                    $list = $this->tree($v, $ext, $display = 1, $list);
                 }
             }
         }
         return $list;
     }
 
-    public static function get_dir_size($f)
+    /**
+     * 获取目录大小
+     * @param string $dir_name 目录名
+     * @return int
+     */
+    public function getDirSize(string $dir_name): int
     {
         $s = 0;
-        foreach (glob($f . '/*') as $v) {
-            $s += is_file($v) ? filesize($v) : self::get_dir_size($v);
+        foreach (glob($dir_name . '/*') as $v) {
+            $s += is_file($v) ? filesize($v) : $this->getDirSize($v);
         }
         return $s;
     }
 
     /**
      * 只显示目录树
-     * @param null $dirName 目录名
-     * @param int $son
+     * @param string $dir_name 目录名
+     * @param int $display
      * @param int $pid 父目录ID
      * @param array $dirs 目录列表
      * @return array
      */
-    public static function treeDir($dirName = null, $son = 0, $pid = 0, $dirs = array())
+    public function treeDir(string $dir_name = '', int $display = 0, int $pid = 0, array $dirs = []): array
     {
-        if (!$dirName) {
-            $dirName = '.';
+        if (empty($dir_name)) {
+            $dir_name = '.';
         }
         static $id = 0;
-        $dirPath = self::dirPath($dirName);
+        $dirPath = $this->dirPath($dir_name);
         foreach (glob($dirPath . "*") as $v) {
             if (is_dir($v)) {
                 $id++;
-                $dirs [$id] = array("id" => $id, 'pid' => $pid, "dirname" => basename($v), "dirpath" => $v);
-                if ($son) {
-                    $dirs = self::treeDir($v, $son, $id, $dirs);
+                $dirs [$id] = ["id" => $id, 'pid' => $pid, "name" => basename($v), "path" => $v];
+                if ($display) {
+                    $dirs = $this->treeDir($v, $display, $id, $dirs);
                 }
             }
         }
@@ -110,36 +122,36 @@ class Dir
 
     /**
      * 删除目录及文件，支持多层删除目录
-     * @param string $dirName 目录名
+     * @param string $dir_name 目录名
      * @return bool
      */
-    public static function del($dirName)
+    public function del(string $dir_name): bool
     {
-        if (is_file($dirName)) {
-            unlink($dirName);
+        if (is_file($dir_name)) {
+            unlink($dir_name);
             return true;
         }
-        $dirPath = self::dirPath($dirName);
+        $dirPath = $this->dirPath($dir_name);
 
         if (!is_dir($dirPath)) {
             return true;
         }
 
         foreach (glob($dirPath . "*") as $v) {
-            is_dir($v) ? self::del($v) : unlink($v);
+            is_dir($v) ? $this->del($v) : unlink($v);
         }
-        return @rmdir($dirName);
+        return @rmdir($dir_name);
     }
 
     /**
      * 批量创建目录
-     * @param $dirName
+     * @param string $dir_name
      * @param int $auth 权限
      * @return bool
      */
-    public static function create($dirName, $auth = 0755)
+    public function create(string $dir_name, int $auth = 0755): bool
     {
-        $dirPath = self::dirPath($dirName);
+        $dirPath = $this->dirPath($dir_name);
         if (is_dir($dirPath)) {
             return true;
         }
@@ -157,32 +169,33 @@ class Dir
 
     /**
      * 复制目录
-     * @param string $olddir 原目录
-     * @param string $newdir 目标目录
+     * @param string $old_dir
+     * @param string $new_dir
      * @param bool $strip_space 去空白去注释
      * @return bool
+     * @throws Exception
      */
-    public static function copy($olddir, $newdir, $strip_space = false)
+    public function copy(string $old_dir, string $new_dir, bool $strip_space = false): bool
     {
-        $olddir = self::dirPath($olddir);
-        $newdir = self::dirPath($newdir);
-        if (!is_dir($olddir)) {
-            halt("复制失败：" . $olddir . "目录不存在");
+        $old_dir = $this->dirPath($old_dir);
+        $new_dir = $this->dirPath($new_dir);
+        if (!is_dir($old_dir)) {
+            halt("复制失败：" . $old_dir . "目录不存在");
         }
-        if (!is_dir($newdir)) {
-            self::create($newdir);
+        if (!is_dir($new_dir)) {
+            $this->create($new_dir);
         }
-        foreach (glob($olddir . '*') as $v) {
-            $to = $newdir . basename($v);
+        foreach (glob($old_dir . '*') as $v) {
+            $to = $new_dir . basename($v);
             if (is_file($to)) {
                 continue;
             }
             if (is_dir($v)) {
-                self::copy($v, $to, $strip_space);
+                $this->copy($v, $to, $strip_space);
             } else {
                 if ($strip_space) {
                     $data = file_get_contents($v);
-                    file_put_contents($to, strip_space($data));
+                    file_put_contents($to, $data);
                 } else {
                     copy($v, $to);
                 }

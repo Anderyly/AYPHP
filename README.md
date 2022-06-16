@@ -1,7 +1,84 @@
 # AYPHP
 轻量级PHP框架
 
+## 规范 
+### 目录和文件
+*   目录使用小写+下划线；
+*   类库、函数文件统一以`.php`为后缀；
+*   类的文件名均以命名空间定义，并且命名空间的路径和类库文件所在路径一致；
+*   类文件采用驼峰法命名（首字母大写），其它文件采用小写+下划线命名；
+*   类名和类文件名保持一致，统一采用驼峰法命名（首字母大写）；
+
+### 函数和类、属性命名
+*   类的命名采用驼峰法（首字母大写），例如`User`、`UserType`，默认不需要添加后缀，例如`UserController`应该直接命名为`User`；
+*   函数的命名使用小写字母和下划线（小写字母开头）的方式，例如`get_client_ip`；
+*   方法的命名使用驼峰法（首字母小写），例如`getUserName`；
+*   属性的命名使用驼峰法（首字母小写），例如`tableName`、`instance`；
+*   以双下划线“\_\_”打头的函数或方法作为魔术方法，例如`__call`和`__autoload`；
+
+## 目录结构
+~~~
+project  应用部署目录
+├─app           应用目录
+│  ├─index              模块目录(可更改)
+│  │  ├─controller      控制器目录
+│  │  ├─model           模型目录
+│  │  ├─view            视图目录
+│  ├─function.php         应用（公共）自定义函数
+├─ay              框架系统目录
+│  ├─unity.php     核心函数
+│  ├─drive               框架驱动文件
+│  ├─lib               框架类文件
+│  ├─Base.php           基础定义文件
+│  ├─Core.php        控制台入口文件
+│  └─ay.php          框架引导文件
+├─config            框架配置目录
+│  │  └─app.php          基础配置文件
+│  │  └─file.php          上传配置
+│  │  └─database.php          数据库配置文件
+│  │  └─image.php          图片配置文件
+│  │  └─redis.php           redis配置文件
+│  │  └─route.php          路由配置文件
+├─extend                扩展类库目录
+├─public                公共资源目录
+│  ├─static             静态资源存放目录(css,js,image)
+│  ├─index.php          应用入口文件
+│  ├─.htaccess          用于 apache 的重写
+├─temp               应用的运行时目录（可写，可设置）
+├─vendor                第三方类库目录（Composer）
+├─README.md             README 文件
+~~~
+
 ## 驱动库
+### 文件夹操作
+> 引入dir类
+
+```php
+use ay\drive\Dir;
+
+// 创建文件夹
+dump(Dir::instance()->create(PUB . "/s"));
+
+// 获取文件扩展名
+dump(Dir::instance()->getExt(PUB . "static/water/water.png"));
+
+// 显示目录树
+dump(Dir::instance()->treeDir(AY));
+
+// 遍历目录内容
+dump(Dir::instance()->tree(AY));
+
+// 删除文件夹
+dump(Dir::instance()->del(PUB . "/s"));
+
+// 获取目录大小
+dump(Dir::instance()->getDirSize(PUB . "static/water"));
+
+// 复制目录
+dump(Dir::instance()->copy(PUB . "static/water", PUB . "static/water1"));
+
+```
+
 ### 图像处理
 > 引入image类
 
