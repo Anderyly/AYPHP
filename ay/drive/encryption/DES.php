@@ -2,7 +2,7 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link http://vclove.cn
+ * @link http://blog.aaayun.cc
  * @copyright Copyright (c) 2019
  */
 

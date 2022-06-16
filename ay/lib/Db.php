@@ -2,38 +2,39 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link http://vclove.cn/
+ * @link http://blog.aaayun.cc
  * @copyright Copyright (c) 2018
  */
 
 namespace ay\lib;
 
+use Exception;
+
 class Db
 {
 
     private static $db;
-    private $dbType = 'mysql';
-    private $pConnect = true;
-    private static $table;
-    private $host;
-    private $port;
-    private $dbName;
-    private $user;
-    private $pass;
-    private $group = '';
-    private $having = '';
-    private static $sql = false; //最后一条sql语句
-    private $where = '';
-    private $order = '';
-    private $limit = '';
-    private $field = '*';
-    private $clear = 0; //状态，0表示查询条件干净，1表示查询条件污染
-    private static $trans = 0; //事务指令数
+    private string $dbType;
+    private bool $pConnect = true;
+    private static string $table;
+    private string $host;
+    private string $port;
+    private string $dbName;
+    private string $user;
+    private string $pass;
+    private string $group = '';
+    private static bool|string $sql = false; //最后一条sql语句
+    private string $where = '';
+    private string $order = '';
+    private string $limit = '';
+    private string $field = '*';
+    private int $clear = 0; //状态，0表示查询条件干净，1表示查询条件污染
+    private static int $trans = 0; //事务指令数
 
     /**
      * 初始化
-     * Dc constructor.
-     * @param null $conf 数据库配置
+     * @param $conf
+     * @throws Exception
      */
     public function __construct($conf = null)
     {
@@ -59,18 +60,23 @@ class Db
 
     /**
      * PDO连接数据库
-     * @throws \Exception
+     * @throws Exception
      */
     private function connect()
     {
-        $dsn = $this->dbType . ':host=' . $this->host . ';port=' . $this->port . ';dbname=' . $this->dbName;
+        if ($this->dbType == 'mysql') {
+            $dsn = $this->dbType . ':host=' . $this->host . ';port=' . $this->port . ';dbname=' . $this->dbName;
+        } else {
+            $dsn = $this->dbType . ':server=' . $this->host . ';port=' . $this->port . ';Database=' . $this->dbName;
+        }
+
         $options = $this->pConnect ? [\PDO::ATTR_PERSISTENT => true] : [];
         try {
             $dbh = new \PDO($dsn, $this->user, $this->pass, $options);
             $dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $dbh->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
         } catch (\PDOException $e) {
-            throw new \Exception('Connection failed: ' . $e->getMessage());
+            throw new Exception('Connection failed: ' . $e->getMessage());
         }
         $dbh->exec('SET NAMES utf8');
         self::$db = $dbh;
@@ -79,7 +85,7 @@ class Db
     /**
      * @return object
      */
-    public static function instance()
+    public static function instance(): object
     {
         return new self();
     }
@@ -87,7 +93,8 @@ class Db
     /**
      * 设置数据表名
      * @param $table
-     * @return object
+     * @return Db
+     * @throws Exception
      */
     public static function name($table)
     {
@@ -103,9 +110,10 @@ class Db
     /**
      * 设置数据表名
      * @param $table
-     * @return object
+     * @return Db
+     * @throws Exception
      */
-    public static function table($table)
+    public static function table($table): Db
     {
         if (empty($table)) {
             halt('不能设置数据表名为空');
@@ -119,8 +127,9 @@ class Db
      * 设置当前数据表别名
      * @param $alias
      * @return object
+     * @throws Exception
      */
-    public function alias($alias): object
+    public function alias($alias): Db
     {
         if (empty($alias) or empty(self::$table)) {
             halt('数据库表名设置别名为空');
@@ -130,11 +139,13 @@ class Db
         return $this;
     }
 
-    private static function addChar($value, $num = 0)
+    private static function addChar($value, $num = 0): string
     {
-        if (strpos($value, "`") === false and $num == 1 and !is_int($value)) {
+        if (!str_contains($value, "`") and $num == 1 and !is_int($value)) {
             $data = "'" . trim($value) . "'";
-        } else if (strpos($value, "`") === false and !is_int($value) and $num != 1) {
+        } else if (!str_contains($value, "`") and !is_int($value) and $num != 1 and strpos($value, ".")) {
+            $data = trim($value);
+        } else if (!str_contains($value, "`") and !is_int($value) and $num != 1) {
             $data = "`" . trim($value) . "`";
         } else {
             $data = trim($value);
@@ -145,9 +156,11 @@ class Db
     /**
      * 执行查询 主要针对 SELECT, SHOW 等指令
      * @param string $sql
+     * @param $options
      * @return mixed
+     * @throws Exception
      */
-    public function doQuery($sql = '', $options = true)
+    public function doQuery(string $sql = '', $options = true): mixed
     {
         self::$sql = $sql;
         try {
@@ -156,7 +169,7 @@ class Db
             } else {
                 $result = self::$db->query(self::$sql)->fetch(\PDO::FETCH_ASSOC);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             halt($sql . $e);
         }
 
@@ -169,13 +182,16 @@ class Db
      * @param string $sql
      * @return mixed
      */
-    public function doExec($sql = '')
+    public function doExec(string $sql = '', $op = ''): mixed
     {
         self::$sql = $sql;
         try {
             $res = self::$db->exec(self::$sql);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             halt($sql . $e);
+        }
+        if ($op == 'insert') {
+            $res = $this->getLastInsId();
         }
         return $res;
     }
@@ -208,7 +224,7 @@ class Db
      * 插入方法
      * @param array $data
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function insert(array $data)
     {
@@ -217,14 +233,14 @@ class Db
             exit('插入数据不能为空');
         }
         $sql = 'INSERT INTO ' . self::$table . '(' . implode(',', array_keys($data)) . ') VALUES(' . implode(',', array_values($data)) . ')';
-        return $this->doExec($sql);
+        return $this->doExec($sql, 'insert');
     }
 
     /**
      * 批量插入方法
      * @param array $data
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function insertAll(array $data)
     {
@@ -251,13 +267,13 @@ class Db
     {
         $sql = 'SELECT LAST_INSERT_ID()';
         $res = $this->doQuery($sql, false);
-        return isset($res['LAST_INSERT_ID()']) ? $res['LAST_INSERT_ID()'] : 'false';
+        return $res['LAST_INSERT_ID()'] ?? 'false';
     }
 
     /**
      * 删除方法
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function delete()
     {
@@ -276,7 +292,7 @@ class Db
      * 更新方法
      * @param array $data
      * @return mixed|void
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(array $data)
     {
@@ -305,7 +321,7 @@ class Db
      * @param array|string $field
      * @param null $number
      * @return mixed|void
-     * @throws \Exception
+     * @throws Exception
      */
     public function setInc($field, $number = null)
     {
@@ -340,7 +356,7 @@ class Db
      * @param array|string $field
      * @param null $number
      * @return mixed|void
-     * @throws \Exception
+     * @throws Exception
      */
     public function setDec($field, $number = null)
     {
@@ -376,7 +392,7 @@ class Db
      */
     public function select()
     {
-        $sql = 'SELECT ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . ' ' . trim($this->order) . ' ' . trim($this->limit) . " " . trim($this->group) . " " . trim($this->having);
+        $sql = 'SELECT ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . ' ' . trim($this->order)  . " " . trim($this->group) . ' ' . trim($this->limit);
         $this->clear = 1;
         $this->clear();
         $res = $this->doQuery(trim($sql));
@@ -389,7 +405,7 @@ class Db
      */
     public function find()
     {
-        $sql = "SELECT " . trim($this->field) . " FROM " . self::$table . " " . trim($this->where) . " " . trim($this->order) . " " . trim(" LIMIT 1") . " " . trim($this->group) . " " . trim($this->having);
+        $sql = "SELECT " . trim($this->field) . " FROM " . self::$table . " " . trim($this->where) . " " . trim($this->order)  . " " . trim($this->group) . " " . trim(" LIMIT 1");
         $this->clear = 1;
         $this->clear();
         return $this->doQuery(trim($sql), false);
@@ -436,7 +452,7 @@ class Db
             foreach ($option as $v) {
                 // 当第一个参数循环后为数组
                 if (is_array($v)) {
-                    if (strstr($this->where, '(')) {
+                    if (str_contains($this->where, '(')) {
                         $qz = ' ';
                     }
                     if (isset($useWhere)) {
@@ -462,26 +478,22 @@ class Db
 
     private function whereTo($field)
     {
-        switch ($field) {
-            case ($field == 'neq' or $field == '!='):
-                return ' != ';
-            case ($field == 'eq' or $field == '='):
-                return ' = ';
-            case ($field == 'like' or $field == '%'):
-                return ' LIKE ';
-            default:
-                return $field;
-        }
+        return match ($field) {
+            $field == 'neq' or $field == '!=' => '!=',
+            $field == 'eq' or $field == '=' => '=',
+            $field == 'like' or $field == '%' => 'LIKE',
+            default => $field,
+        };
     }
-    
 
     /**
      * 设置条件
      * @param string $option
-     * @param string | array $value
+     * @param array | string | int $value
+     * @param string $tj
      * @return $this
      */
-    public function whereIn($option, $value, $tj = 'AND')
+    public function whereIn(string $option, array|string|int $value, string $tj = 'AND'): static
     {
         if ($this->clear > 0) {
             $this->clear();
@@ -490,7 +502,6 @@ class Db
         // 判断之前是否使用where语句
         if (strpos($this->where, 'WHERE')) {
             $this->where .= ' ' . $tj . ' ';
-            $useWhere = 1;
         } else {
             $this->where = ' WHERE ';
         }
@@ -550,7 +561,7 @@ class Db
             foreach ($option as $v) {
                 $logIc = ' AND';
                 if (is_array($v)) {
-                    if (strstr($this->where, '(')) {
+                    if (str_contains($this->where, '(')) {
                         $qz = ' ';
                     }
                     if (isset($ss)) {
@@ -565,10 +576,8 @@ class Db
                 }
                 if (isset($v[3]) and ($v[3] == 'or' or $v[3] == 'OR')) {
                     $logIc = ' OR';
-                    $this->where .= isset($mark) ? $logIc . $condition : $condition;
-                } else {
-                    $this->where .= isset($mark) ? $logIc . $condition : $condition;
                 }
+                $this->where .= isset($mark) ? $logIc . $condition : $condition;
 
                 $mark = 1;
             }
@@ -591,7 +600,7 @@ class Db
         $res = $this->doQuery($sql);
 
         $ret = [];
-        foreach ($res as $key => $value) {
+        foreach ($res as $value) {
             $ret[] = $value['COLUMN_NAME'];
         }
         return $ret;
@@ -622,13 +631,7 @@ class Db
             }
             if (array_key_exists($key, $table_column)):
                 $key = $this->addChar($key);
-                if (is_int($val)) {
-                    $val = intval($val);
-                } else if (is_float($val)) {
-                    $val = floatval($val);
-                } else if (preg_match('/^\(\w*(\+|\-|\*|\/)?\w*\)$/i', $val)) {
-                    $val = $val;
-                } elseif (is_string($val)) {
+                if (is_string($val)) {
                     $val = '"' . addslashes($val) . '"';
                 }
                 $ret[$key] = $val;
@@ -675,21 +678,6 @@ class Db
         }
 
         $this->group = ' GROUP BY ' . $option;
-
-        return $this;
-    }
-
-    /**
-     * @param $option
-     * @return $this
-     */
-    public function having($option)
-    {
-        if ($this->clear > 0) {
-            $this->clear();
-        }
-
-        $this->having = ' HAVING ' . $option;
 
         return $this;
     }
@@ -762,9 +750,15 @@ class Db
         if ($this->clear > 0) {
             $this->clear();
         }
-        $sql = 'SELECT count(' . trim($this->field) . ') AS ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
-        $rows = $this->doQuery($sql, false);
-        return $rows[trim($this->field)];
+        if (str_contains(trim($this->field), '.')) {
+            $sql = 'SELECT count(' . trim($this->field) . ') AS id FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
+            $rows = $this->doQuery($sql, false);
+            return $rows['id'];
+        } else {
+            $sql = 'SELECT count(' . trim($this->field) . ') AS ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
+            $rows = $this->doQuery($sql, false);
+            return $rows[trim($this->field)];
+        }
     }
 
     /**
@@ -776,9 +770,18 @@ class Db
         if ($this->clear > 0) {
             $this->clear();
         }
-        $sql = 'SELECT SUM(' . trim($this->field) . ') AS ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
-        $rows = $this->doQuery($sql, false);
-        return $rows[trim($this->field)];
+        if (str_contains(trim($this->field), '.')) {
+            $sql = 'SELECT SUM(' . trim($this->field) . ') AS id FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
+            $rows = $this->doQuery($sql, false);
+            return $rows['id'];
+        } else {
+            $sql = 'SELECT SUM(' . trim($this->field) . ') AS ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
+            $rows = $this->doQuery($sql, false);
+            return $rows[trim($this->field)];
+        }
+//        $sql = 'SELECT SUM(' . trim($this->field) . ') AS ' . trim($this->field) . ' FROM ' . self::$table . ' ' . trim($this->where) . " " . trim($this->order);
+//        $rows = $this->doQuery($sql, false);
+//        return $rows[trim($this->field)];
     }
 
     /**
@@ -814,7 +817,6 @@ class Db
         }
 
         self::$trans++;
-        return;
     }
 
     /**

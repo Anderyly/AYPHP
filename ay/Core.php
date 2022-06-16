@@ -2,7 +2,7 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link http://vclove.cn/
+ * @link http://blog.aaayun.cc
  * @copyright Copyright (c) 2018
  */
 
@@ -14,17 +14,21 @@ use Exception;
 
 final class Core
 {
-    public static function run()
+    public static function run(): void
     {
         self::_init();
-        self::route();
+        try {
+            self::route();
+        } catch (Exception $e) {
+            dump($e);
+        }
     }
 
     /**
      * 路由加载
      * @throws Exception
      */
-    private static function route()
+    private static function route(): void
     {
 
         $route = new Route();
@@ -51,7 +55,10 @@ final class Core
                 if (file_exists(APP_PATH . MODE . "/function.php")) {
                     require_once APP_PATH . MODE . "/function.php";
                 }
-                echo call_user_func_array(array($controllerS, $action), []);
+                $res = call_user_func_array(array($controllerS, $action), []);
+                if (is_string($res)) {
+                    echo $res;
+                }
                 exit;
             } else {
                 halt('不存在:' . $action . ' 方法');

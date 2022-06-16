@@ -2,7 +2,7 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link http://vclove.cn/
+ * @link http://blog.aaayun.cc
  * @copyright Copyright (c) 2018
  */
 
@@ -10,7 +10,7 @@
 $GLOBALS['_startTime'] = microtime(true);
 
 // 系统常量定义
-defined('VERSION') or define('VERSION', '1.3');
+defined('VERSION') or define('VERSION', '1.4');
 defined('AY') or define('AY', dirname(str_replace('\\', '/', __FILE__)) . '/');
 defined('ROOT') or define('ROOT', dirname(AY) . '/');
 defined('COMMON') or define('COMMON', AY . 'common/');
@@ -53,7 +53,7 @@ require AY . 'unity.php';
 // 加载默认配置
 $configFileArr = scandir(CONFIG);
 foreach ($configFileArr as $v) {
-    if (!strstr($v, '.php') or $v == '.' or $v == '..') {
+    if (!str_contains($v, '.php') or $v == '.' or $v == '..') {
         continue;
     }
     C(include CONFIG . $v);
@@ -72,7 +72,7 @@ if (C('DEBUG')) {
 // 加载配置
 $userCommonFile = scandir(APP_CONFIG);
 foreach ($userCommonFile as $v) {
-    if (!strstr($v, '.php') or $v == '.' or $v == '..') {
+    if (!str_contains($v, '.php') or $v == '.' or $v == '..') {
         continue;
     }
 

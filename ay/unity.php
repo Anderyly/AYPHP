@@ -2,11 +2,11 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link http://vclove.cn/
+ * @link http://blog.aaayun.cc
  * @copyright Copyright (c) 2018
  */
 
-use ay\drive\View;
+use ay\lib\View;
 
 /**
  * 跳转函数
