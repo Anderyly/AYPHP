@@ -8,10 +8,12 @@
 
 namespace ay\drive;
 
+use Exception;
+
 class Autoloader
 {
     // 站点根目录，可配置多个子目录
-    protected $domainRoot = [];
+    protected array $domainRoot = [];
 
     public function __construct()
     {
@@ -32,7 +34,7 @@ class Autoloader
      * 清空当前web目录
      * @return $this
      */
-    public function clear()
+    public function clear(): static
     {
         $this->domainRoot = [];
         return $this;
@@ -42,7 +44,7 @@ class Autoloader
      * 返回当前实例
      * @return Autoloader
      */
-    public static function instance()
+    public static function instance(): Autoloader
     {
         return new static;
     }
@@ -51,12 +53,12 @@ class Autoloader
      * 设置web目录
      * @param string $root
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
-    public function setRoot($root = '')
+    public function setRoot(string $root = ''): static
     {
         if (!$root || !is_dir(realpath($root))) {
-            throw new \Exception('No root param export or invalid path');
+            throw new Exception('No root param export or invalid path');
         }
         $this->domainRoot[] = realpath($root);
         return $this;
@@ -67,7 +69,7 @@ class Autoloader
      * @param $class
      * @return bool
      */
-    protected function autoloader($class)
+    protected function autoloader($class): bool
     {
         $file = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
         foreach ($this->domainRoot as $path) {
@@ -87,7 +89,7 @@ class Autoloader
      * 初始化
      * @return $this
      */
-    public function init()
+    public function init(): static
     {
         spl_autoload_register(array($this, 'autoloader'));
         return $this;

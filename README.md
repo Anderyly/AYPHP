@@ -49,6 +49,21 @@ project  应用部署目录
 ├─README.md             README 文件
 ~~~
 
+## 核心类
+### Xml操作
+> 引入Xml类
+
+```php
+use ay\lib\Xml;
+
+// 生成xml
+dump(Xml::instance()->create(["a" => 1, "d" => 2]));
+
+// 转数组
+dump(xml::instance()->toArray(xml字符串));
+
+```
+
 ## 驱动库
 ### 文件夹操作
 > 引入dir类

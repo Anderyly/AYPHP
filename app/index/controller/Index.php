@@ -2,8 +2,11 @@
 
 namespace app\index\controller;
 
+
 use ay\drive\Dir;
 use ay\drive\Image;
+
+use ay\lib\Xml;
 
 class Index
 {
@@ -11,6 +14,30 @@ class Index
     public function index(): string
     {
         return '欢迎使用AYPHP框架';
+    }
+
+    public function xml() {
+        // 生成xml
+        dump(Xml::instance()->create(["a" => 1, "d" => 2]));
+
+        // 转数组
+        dump(xml::instance()->toArray("<xml><appid><![CDATA[wxd898fcb01713c658]]></appid>
+<bank_type><![CDATA[OTHERS]]></bank_type>
+<cash_fee><![CDATA[1]]></cash_fee>
+<fee_type><![CDATA[CNY]]></fee_type>
+<is_subscribe><![CDATA[N]]></is_subscribe>
+<mch_id><![CDATA[1483469312]]></mch_id>
+<nonce_str><![CDATA[8EYuWgYiwjnEhvOg]]></nonce_str>
+<openid><![CDATA[oTgZpwaXTs2GzvkwMNDzbWIcrqjA]]></openid>
+<out_trade_no><![CDATA[347889645665669422]]></out_trade_no>
+<result_code><![CDATA[SUCCESS]]></result_code>
+<return_code><![CDATA[SUCCESS]]></return_code>
+<sign><![CDATA[18EE3825D2A3FD9A9DCBC60CAC131973]]></sign>
+<time_end><![CDATA[20220514185750]]></time_end>
+<total_fee>1</total_fee>
+<trade_type><![CDATA[NATIVE]]></trade_type>
+<transaction_id><![CDATA[4200001503202205144756789400]]></transaction_id>
+</xml>"));
     }
 
     public function dir() {
