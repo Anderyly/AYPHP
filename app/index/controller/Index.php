@@ -6,12 +6,28 @@ namespace app\index\controller;
 use ay\drive\Dir;
 use ay\drive\Image;
 
+use ay\lib\Json;
 use ay\lib\Request;
 use ay\lib\Session;
 use ay\lib\Xml;
 
 class Index
 {
+
+    public function json() {
+
+        $data = [
+            "list" => [
+                ["id"=>1],
+                ["id"=>2],
+                ["id"=>3],
+            ]
+        ];
+
+        // 与最外层同级
+        $arr = ["page" => 1];
+        Json::msg(200, "success", $data, $arr);
+    }
 
     public function session() {
         // 设置

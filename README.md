@@ -50,19 +50,6 @@ project  应用部署目录
 ~~~
 
 ## 核心类
-### Xml操作
-> 引入Xml类
-
-```php
-use ay\lib\Xml;
-
-// 生成xml
-dump(Xml::instance()->create(["a" => 1, "d" => 2]));
-
-// 转数组
-dump(xml::instance()->toArray(xml字符串));
-
-```
 
 ### Request请求类
 > 引入Request类
@@ -107,6 +94,63 @@ dump(Session::pull("user"));
 // 删除
 Session::delete("user");
 ```
+
+### Json返回类
+> 引入json类
+
+```php
+use ay\lib\Json;
+
+$data = [
+    "list" => [
+        ["id" => 1],
+        ["id" => 2],
+        ["id" => 3],
+    ]
+];
+
+// 与最外层同级
+$arr = ["page" => 1];
+Json::msg(200, "success", $data, $arr);
+```
+
+返回
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "list": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3
+      }
+    ]
+  },
+  "page": 1
+}
+```
+
+### Xml操作
+> 引入Xml类
+
+```php
+use ay\lib\Xml;
+
+// 生成xml
+dump(Xml::instance()->create(["a" => 1, "d" => 2]));
+
+// 转数组
+dump(xml::instance()->toArray(xml字符串));
+
+```
+
+
 
 ## 驱动库
 ### 文件夹操作

@@ -15,10 +15,10 @@ class Json
      * @param int $code 状态码
      * @param string $msg 返回的信息
      * @param array $data info里面的数组
-     * @param array $zsy 一级字段
+     * @param array|null $zsy 一级字段
      * @return string Json字符串
      */
-    public static function msg($code, $msg = "", $data = [], $zsy = null)
+    public static function msg(int $code, string $msg = "", array $data = [], array $zsy = null): string
     {
         // 智能判断 列表必须包含list 或者 all
         $num = count($data);
