@@ -8,23 +8,25 @@
 
 namespace ay\lib;
 
+use Exception;
+
 class View
 {
 
-    private static $data = [];
+    private static array $data = [];
 
-    public static function assign($k, $v)
+    public static function assign($k, $v): void
     {
         self::$data[$k] = $v;
     }
 
     /**
      * 显示模板
-     * @param $filePath
-     * @param $data
-     * @throws \Exception
+     * @param string $filePath
+     * @param array $data
+     * @throws Exception
      */
-    public static function view($filePath = '', $data = [])
+    public static function view(string $filePath = '', array $data = []): void
     {
         if (!is_dir(CACHE)) {
             mkdir(CACHE, 0777, true);
@@ -53,22 +55,22 @@ class View
             //
         }
 
-        $enptyFilePath = CACHE . md5(MODE . CONTROLLER . MODE . $filePath);
+        $encryptFilePath = CACHE . md5(MODE . CONTROLLER . MODE . $filePath);
 
         if (!C('CACHE')) {
             self::isFile(self::remPlacer($filePath, null), $data);
         } else {
             //
-            if (is_file($enptyFilePath . '.html')) {
-                $fileT = filemtime($enptyFilePath . '.html');
+            if (is_file($encryptFilePath . '.html')) {
+                $fileT = filemtime($encryptFilePath . '.html');
                 if ((time() - $fileT) >= C('CACHE_TIME')) {
-                    self::isFile(self::remPlacer($filePath, $enptyFilePath . '.html'), $data);
+                    self::isFile(self::remPlacer($filePath, $encryptFilePath . '.html'), $data);
                 } else {
-                    self::isFile($enptyFilePath . '.html', $data);
+                    self::isFile($encryptFilePath . '.html', $data);
                 }
                 //
             } else {
-                self::isFile(self::remPlacer($filePath, $enptyFilePath . '.html'), $data);
+                self::isFile(self::remPlacer($filePath, $encryptFilePath . '.html'), $data);
             }
             //
         }
@@ -77,27 +79,26 @@ class View
     /**
      * 模板替换
      * @param string $filePath 原模板地址
-     * @param string $enptyFilePath 加密后的模板地址
-     * @return mixed
-     * @throws \Exception
+     * @param string $encryptFilePath 加密后的模板地址
+     * @return string
+     * @throws Exception
      */
-    private static function remPlacer($filePath, $enptyFilePath)
+    private static function remPlacer(string $filePath, string $encryptFilePath): string
     {
         $cache = C('CACHE');
 
         if ($cache) {
-            if (is_file($filePath)) {
-                $content = @file_get_contents($filePath);
-            } else {
+            $content = @file_get_contents($filePath);
+            if (!is_file($filePath)) {
                 halt('找不到:' . $filePath . ' 模板');
             }
 
             // 引入模板
             $content = self::merge($content);
             $content = preg_replace(C('CacheMatch'), C('CacheReplace'), $content);
-            @file_put_contents($enptyFilePath, $content);
+            @file_put_contents($encryptFilePath, $content);
 
-            return $enptyFilePath;
+            return $encryptFilePath;
         }
         return $filePath;
     }
@@ -106,12 +107,12 @@ class View
      * 加载 赋值
      * @param string $path 模板地址
      * @param array $data 传递的数据
-     * @throws \Exception
+     * @throws Exception
      */
-    private static function isFile($path, $data)
+    private static function isFile(string $path, array $data = []): void
     {
 
-        if (!empty($data) and !is_null($data)) {
+        if (count($data) == 0) {
             extract(array_merge($data, self::$data), EXTR_OVERWRITE, '');
         } else {
             extract(self::$data, EXTR_OVERWRITE, '');
@@ -129,12 +130,11 @@ class View
 
     /**
      * @param string $content 模板内容
-     * @return string|string[]|null
-     * @throws \Exception
+     * @throws Exception
      */
-    private static function merge($content)
+    private static function merge(string $content): array|string|null
     {
-        if (strstr($content, "{@")) {
+        if (str_contains($content, "{@")) {
             $count = substr_count($content, '{@');
             for ($i = 1; $i <= $count; $i++) {
                 if (!isset($lll)) {
@@ -161,9 +161,8 @@ class View
                 if (!strpos($filename, 'html')) {
                     $filename .= '.html';
                 }
-                if (is_file(($filename))) {
-                    $cls = file_get_contents($filename);
-                } else {
+                $cls = file_get_contents($filename);
+                if (!is_file(($filename))) {
                     halt('找不到:' . $filename . ' 模板');
                 }
                 $kkk = preg_replace(C('CacheTemplate'), $cls, $lll, 1);

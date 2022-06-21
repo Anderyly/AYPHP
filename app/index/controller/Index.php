@@ -6,17 +6,31 @@ namespace app\index\controller;
 use ay\drive\Dir;
 use ay\drive\Image;
 
+use ay\lib\Request;
 use ay\lib\Xml;
 
 class Index
 {
+
+    public function param()
+    {
+
+        dump(Request::instance()->param());
+
+        dump(Request::instance()->get());
+        dump(Request::instance()->post());
+        dump(Request::instance()->put());
+        dump(Request::instance()->delete());
+
+    }
 
     public function index(): string
     {
         return '欢迎使用AYPHP框架';
     }
 
-    public function xml() {
+    public function xml()
+    {
         // 生成xml
         dump(Xml::instance()->create(["a" => 1, "d" => 2]));
 
@@ -40,7 +54,8 @@ class Index
 </xml>"));
     }
 
-    public function dir() {
+    public function dir()
+    {
         // 创建文件夹
         dump(Dir::instance()->create(PUB . "/s"));
 

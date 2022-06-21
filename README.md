@@ -64,6 +64,23 @@ dump(xml::instance()->toArray(xml字符串));
 
 ```
 
+### Request请求类
+> 引入Request类
+```php
+use ay\lib\Request;
+
+// 获取全部参数                                            
+dump(Request::instance()->param());        
+// 获取get参数参数                                         
+dump(Request::instance()->get());         
+// 获取post请求参数 status字段并格式化成int类型
+dump(Request::instance()->post("status", "int"));
+// 获取put请求正文         
+dump(Request::instance()->put());
+// 获取delete请求参数          
+dump(Request::instance()->delete());       
+```
+
 ## 驱动库
 ### 文件夹操作
 > 引入dir类

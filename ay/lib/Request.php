@@ -13,41 +13,65 @@ use ay\drive\Route;
 class Request
 {
 
+    public static function instance(): Request
+    {
+        return new self();
+    }
+
+    public function delete(string $field = '', $type = null): array|float|int|bool|string|null
+    {
+        parse_str($_SERVER['QUERY_STRING'], $data);
+        unset($data['s']);
+        if (empty($field)) {
+            return $this->filter($data);
+        } else {
+            return $this->typeTo($this->filter($data[$field]), $type);
+        }
+    }
+
+    public function put(string $field = '', $type = null): array|float|int|bool|string|null
+    {
+        parse_str(file_get_contents('php://input'), $data);
+        unset($data['s']);
+        if (empty($field)) {
+            return $this->filter($data);
+        } else {
+            return $this->typeTo($this->filter($data[$field]), $type);
+        }
+    }
+
     /**
      * 获取get参数
-     * @param string $var   参数名
-     * @param null $type    类型
-     * @return array|bool|float|int|string|string[]|null
+     * @param string $field
+     * @param null $type 类型
+     * @return array|float|int|bool|string|null
      */
-    public static function get($var = '', $type = null)
+    public function get(string $field = '', $type = null): array|float|int|bool|string|null
     {
-        $get = Route::$get;
+        $data = Route::$get;
 
-        if ($get == false) {
-            $get = $GLOBALS['_GET'];
-            unset($get['/' . MODE . '/' . CONTROLLER . '/' . ACTION . '/']);
-            unset($get['/' . MODE . '/' . CONTROLLER . '/' . ACTION]);
+        if (!$data) {
+            $data = $GLOBALS['_GET'];
         }
-        if (empty($var)) {
-            return self::filter($get);
+        unset($data['s']);
+        if (empty($field)) {
+            return $this->filter($data);
         } else {
-            if (!self::has($var, 'get')) {
+            if (!$this->has($field, 'get')) {
                 return false;
             }
-
-            $value = self::filter($get[$var]);
-            return self::typeTo($value, $type);
+            return $this->typeTo($this->filter($data[$field]), $type);
         }
 
     }
 
     /**
      * 类型转换
-     * @param bool|float|int|string|array $value    参数
-     * @param string $type     类型
-     * @return bool|float|int|string
+     * @param float|array|bool|int|string $value 参数
+     * @param string $type 类型
+     * @return float|int|bool|array|string
      */
-    private static function typeTo($value, $type)
+    private function typeTo(float|array|bool|int|string $value, string $type): float|int|bool|array|string
     {
         if (gettype($value) != 'array') {
             switch ($type) {
@@ -75,34 +99,34 @@ class Request
     }
 
     /**
-     *
-     * @return bool|string
+     * @return string
      */
-    public static function url()
+    public function url(): string
     {
-        $str = self::filter($_SERVER['PATH_INFO']);
+        $str = $this->filter($_SERVER['PATH_INFO']);
         return substr($str, 0, strrpos($str, '.'));
     }
 
     /**
      * 获取post参数
-     * @param string $var   参数名
-     * @param null $type    类型
+     * @param string $field
+     * @param null $type 类型
      * @return array|bool|float|int|string|string[]|null
      */
-    public static function post($var = '', $type = null)
+    public function post(string $field = '', $type = null): array|float|bool|int|string|null
     {
 
-        $post = $GLOBALS['_POST'];
-        if (empty($var)) {
-            return self::filter($post);
+        $data = $GLOBALS['_POST'];
+        unset($data['s']);
+        if (empty($field)) {
+            return $this->filter($data);
         } else {
-            if (!self::has($var, 'post')) {
+            if (!$this->has($field, 'post')) {
                 return false;
             }
 
-            $value = self::filter($post[$var]);
-            return self::typeTo($value, $type);
+            $value = $this->filter($data[$field]);
+            return $this->typeTo($value, $type);
         }
 
     }
@@ -111,46 +135,52 @@ class Request
      * 获取全部参数
      * @return array
      */
-    public static function param()
+    public function param(): array
     {
-        return array_merge(self::get(), self::post());
+        return array_merge($this->get(), $this->post(), $this->delete(), $this->put(), ["s" => $this->url()]);
     }
 
     /**
      * 获取文件
-     * @param null $var     参数名
+     * @param null $field
      * @return array|string|string[]|null
      */
-    public static function file($var = null)
+    public function file($field = null): array|string|null
     {
-        if (empty($var)) {
+        if (empty($field)) {
             return $_FILES;
         } else {
-            return $_FILES[$var];
+            return $_FILES[$field];
         }
     }
 
     /**
      * 判断参数是否存在
-     * @param string $var       参数名
-     * @param string $type      传递方式
+     * @param $field
+     * @param string $type 传递方式
      * @return bool
      */
-    public static function has($var, $type = 'ALL')
+    public function has($field, string $type = 'ALL'): bool
     {
 
         switch ($type) {
             case 'post':
-                $return = array_key_exists($var, self::post());
+                $return = array_key_exists($field, $this->post());
                 break;
             case 'get':
-                $return = array_key_exists($var, self::get());
+                $return = array_key_exists($field, $this->get());
+                break;
+            case 'delete':
+                $return = array_key_exists($field, $this->delete());
+                break;
+            case 'put':
+                $return = array_key_exists($field, $this->put());
                 break;
             default:
-                if (array_key_exists($var, self::param())) {
+                if (array_key_exists($field, $this->param())) {
                     $return = true;
                 } else {
-                    $return = true;
+                    $return = false;
                 }
         }
 
@@ -160,10 +190,10 @@ class Request
 
     /**
      * 过滤参数
-     * @param bool|float|int|string $str  值
+     * @param float|bool|int|string|array $str  值
      * @return array|string|string[]|null
      */
-    private static function filter($str)
+    private function filter(float|bool|int|string|array $str): array|string|null
     {
 
         $farr = array(
@@ -191,8 +221,7 @@ class Request
             //
         } else {
             $str = preg_replace($farr, '', $str);
-            $str = strip_tags($str);
-            return $str;
+            return strip_tags($str);
         }
 
     }
