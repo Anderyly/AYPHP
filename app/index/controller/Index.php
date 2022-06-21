@@ -7,10 +7,25 @@ use ay\drive\Dir;
 use ay\drive\Image;
 
 use ay\lib\Request;
+use ay\lib\Session;
 use ay\lib\Xml;
 
 class Index
 {
+
+    public function session() {
+        // 设置
+        dump(Session::set("user", "123"));
+        // 获取
+        dump(Session::get("user"));
+        // 判断是否存在
+        dump(Session::has("user"));
+        // 取出并删除
+        dump(Session::pull("user"));
+        // 删除
+        Session::delete("user");
+
+    }
 
     public function param()
     {

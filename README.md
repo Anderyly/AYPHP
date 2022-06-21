@@ -66,19 +66,46 @@ dump(xml::instance()->toArray(xml字符串));
 
 ### Request请求类
 > 引入Request类
+
 ```php
 use ay\lib\Request;
 
 // 获取全部参数                                            
-dump(Request::instance()->param());        
-// 获取get参数参数                                         
-dump(Request::instance()->get());         
+dump(Request::instance()->param());
+
+// 获取get参数参数
+dump(Request::instance()->get());
+
 // 获取post请求参数 status字段并格式化成int类型
 dump(Request::instance()->post("status", "int"));
-// 获取put请求正文         
+
+// 获取put请求正文
 dump(Request::instance()->put());
-// 获取delete请求参数          
+
+// 获取delete请求参数
 dump(Request::instance()->delete());       
+```
+
+### Session
+> 引入Session类
+
+```php
+use ay\lib\Request;
+
+// 设置
+dump(Session::set("user", "123"));
+
+// 获取
+dump(Session::get("user"));
+
+// 判断是否存在
+dump(Session::has("user"));
+
+// 取出并删除
+dump(Session::pull("user"));
+
+// 删除
+Session::delete("user");
 ```
 
 ## 驱动库

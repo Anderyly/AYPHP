@@ -10,60 +10,83 @@ namespace ay\lib;
 
 class Session
 {
-    public static function set($name, $var = '', $path = '')
+
+    /**
+     * 设置Session
+     * @param $name
+     * @param string $var
+     * @return bool
+     */
+    public static function set($name, string $var = ''): bool
     {
         $_SESSION[$name] = $var;
-        return true;
+        if (Session::has($name)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    public static function get($name, $var = '', $path = '')
+    /**
+     * 获取Session
+     * @param $name
+     * @return string
+     */
+    public static function get($name): string
     {
-
-        if (!isset($_SESSION[$name])) {
-            return false;
-        } elseif ($_SESSION[$name] == $var and !empty($var)) {
-            if (empty($path) and empty($var)) {
-                return $_SESSION[$name];
-            }
+        if (Session::has($name)) {
+            return $_SESSION[$name];
         } else {
-            if (empty($path) and empty($var)) {
-                return $_SESSION[$name];
-            }
+            return '';
         }
 
     }
 
-    public static function has($name, $var = '', $path = '')
+    /**
+     * 判断Session存在
+     * @param $name
+     * @param string $var
+     * @return bool
+     */
+    public static function has($name, string $var = ''): bool
     {
-        // p($_SESSION['user']);exit;
         if (!isset($_SESSION[$name])) {
             return false;
-        } elseif ($_SESSION[$name] == $var and !empty($var)) {
+        } else if ($_SESSION[$name] == $var and !empty($var)) {
             return true;
         } else {
             return true;
         }
     }
 
-    public static function delete($name = '', $path = '')
+    /**
+     * 删除Session
+     * @param string $name
+     * @return void
+     */
+    public static function delete(string $name = ''): void
     {
         if (empty($name)) {
             $_SESSION = [];
-        } else if (empty($path) and !empty($name)) {
+        } else {
             unset($_SESSION[$name]);
         }
     }
 
-    public static function pull($name = '', $path = '')
+    /**
+     * 取出并删除Session
+     * @param string $name
+     * @return string
+     */
+    public static function pull(string $name = ''): string
     {
         if (empty($name)) {
             $_SESSION = [];
-        } elseif (empty($path) and !empty($name)) {
+            $data = '';
+        } else {
             $data = self::get($name);
             unset($_SESSION[$name]);
         }
-
         return $data;
     }
-
 }
