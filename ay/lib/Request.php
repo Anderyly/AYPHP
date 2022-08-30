@@ -190,10 +190,10 @@ class Request
 
     /**
      * 过滤参数
-     * @param float|bool|int|string|array $str  值
+     * @param float|bool|int|string|array|null $str  值
      * @return array|string|string[]|null
      */
-    private function filter(float|bool|int|string|array $str): array|string|null
+    private function filter(float|bool|int|string|array|null $str): array|string|null
     {
 
         $farr = array(

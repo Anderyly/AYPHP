@@ -13,20 +13,20 @@ use ay\lib\View;
  * @param string $str 地址
  * @return null $data 参数
  */
-function url($str, $data = null)
+function url(string $str, $data = null)
 {
     return \ay\drive\Url::instance()->get($str, $data);
 }
 
 /**
  * 打印函数
- * @param array|string $arr
+ * @param object|bool|array|string|null $arr
  */
-function dump($arr)
+function dump(object|bool|array|string|null $arr): void
 {
     if (is_bool($arr)) {
         var_dump($arr);
-    } elseif (is_null($arr)) {
+    } else if (is_null($arr)) {
         var_dump(null);
     } else {
         echo "<pre style='padding:10px;border_radius:5px;background:#f5f5f5;border:1px solid #ccc;'>";
@@ -37,10 +37,10 @@ function dump($arr)
 
 /**
  * 打印函数
- * @param string $arr 输出内容
- * @param string $alink 跳转链接
+ * @param string $msg
+ * @param null $alink 跳转链接
  */
-function fail($msg = '页面错误！请稍后再试～', $alink = null)
+function fail(string $msg = '页面错误！请稍后再试～', $alink = null): void
 {
     assign('msg', $msg);
     if (!is_null($alink)) assign('link', $alink);
@@ -51,9 +51,9 @@ function fail($msg = '页面错误！请稍后再试～', $alink = null)
 /**
  * 打印函数
  * @param string $msg 输出内容
- * @param string $alink 跳转链接
+ * @param string|null $alink 跳转链接
  */
-function success($msg = '操作成功～', $alink = null)
+function success(string $msg = '操作成功～', string $alink = null): void
 {
     assign('msg', $msg);
     if (!is_null($alink)) assign('link', $alink);
@@ -65,9 +65,9 @@ function success($msg = '操作成功～', $alink = null)
 /**
  * @param null $str
  * @param null $type
- * @return array|mixed|string|string[]|null
+ * @return array|bool|float|int|string|string[]|null
  */
-function R($str = NULL, $type = null)
+function R($str = NULL, $type = null): array|float|bool|int|string|null
 {
     if (!strpos($str, '.')) {
         $qm = $str;
@@ -77,59 +77,48 @@ function R($str = NULL, $type = null)
         $qm = substr($str, 0, strrpos($str, '.'));
     }
 
-    switch ($qm) {
-        case 'get':
-            $data = \ay\lib\Request::get($hm, $type);
-            break;
-        case 'post':
-            $data = \ay\lib\Request::post($hm, $type);
-            break;
-        case 'url':
-            $data = \ay\lib\Request::url();
-            break;
-        case 'file':
-            $data = \ay\lib\Request::file($hm);
-            break;
-        case 'param':
-            $data = \ay\lib\Request::param();
-            break;
-        case '?get':
-            $data = \ay\lib\Request::has($hm, 'get');
-            break;
-        case '?post':
-            $data = \ay\lib\Request::has($hm, 'post');
-            break;
-        default:
-            $data = false;
-    }
-    return $data;
+    return match ($qm) {
+        'get' => \ay\lib\Request::instance()->get($hm, $type),
+        'post' => \ay\lib\Request::instance()->post($hm, $type),
+        'url' => \ay\lib\Request::instance()->url(),
+        'file' => \ay\lib\Request::instance()->file($hm),
+        'param' => \ay\lib\Request::instance()->param(),
+        '?get' => \ay\lib\Request::instance()->has($hm, 'get'),
+        '?post' => \ay\lib\Request::instance()->has($hm, 'post'),
+        default => false,
+    };
 }
 
-function controller($name, $vae = '')
+function controller($name, $vae = ''): void
 {
-    \ay\lib\Controller::instance()->controller($name, $vae);
+    try {
+        \ay\lib\Controller::instance()->controller($name, $vae);
+    } catch (Exception $e) {
+        halt("加载控制器失败！");
+    }
 }
 
 /**
  * @param string $filename
- * @param null $data
+ * @param array|null $data
+ * @throws Exception
  */
-function view($filename = '', $data = null)
+function view(string $filename = '', ?array $data = []): void
 {
-    View::view($filename, $data);
+    View::view($filename, (array)$data);
 }
 
-function assign($name, $value)
+function assign($name, $value): void
 {
     View::assign($name, $value);
 }
 
 /**
  * 导入extend下文件
- * @param string $filepath
+ * @param $filePath
  * @throws Exception
  */
-function extend($filePath)
+function extend($filePath): void
 {
     $filePath = EXTEND . $filePath;
     if (!is_file($filePath)) halt($filePath . ' 不存在');
@@ -138,10 +127,10 @@ function extend($filePath)
 
 /**
  * 导入vendor目录下文件
- * @param string $filepath 路径
+ * @param $filePath
  * @throws Exception
  */
-function vendor($filePath)
+function vendor($filePath): void
 {
     $filePath = VENDOR . $filePath;
     if (!is_file($filePath)) halt($filePath . ' 不存在');
@@ -151,10 +140,10 @@ function vendor($filePath)
 /**
  * 全局导入
  * @param string $file 文件名
- * @param array $path 路径
+ * @param string $path 路径
  * @throws Exception
  */
-function import($file, $path)
+function import(string $file, string $path): void
 {
     $filePath = $path . $file;
     if (!is_file($filePath)) halt($filePath . ' 不存在');
@@ -163,35 +152,35 @@ function import($file, $path)
 
 /**
  * 载入或设置配置顶
- * @param string $name 配置名
+ * @param array|string $name 配置名
  * @param string $value 配置值
- * @return array|string
+ * @return array|string|null
  */
-function C($name = null, $value = null)
+function C(array|string $name = '', string $value = ''): array|string|null
 {
     static $config = [];
-    if (is_null($name)) {
+    if (empty($name)) {
         return $config;
-    } elseif (is_string($name)) {
+    } else if (is_string($name)) {
         $name = strtoupper($name);
         $data = array_change_key_case($config, CASE_UPPER);
-        if (!strstr($name, '.')) {
+        if (!str_contains($name, '.')) {
             //获得配置
-            if (is_null($value)) {
-                return isset($data[$name]) ? $data[$name] : null;
+            if (empty($value)) {
+                return $data[$name] ?? null;
             } else {
                 return $config[$name] = isset($data[$name]) && is_array($data[$name]) && is_array($value) ? array_merge($config[$name], (array)($value)) : $value;
             }
         } else {
             //二维数组
             $name = array_change_key_case(explode(".", $name));
-            if (is_null($value)) {
-                return isset($data[$name[0]][$name[1]]) ? $data[$name[0]][$name[1]] : null;
+            if (empty($value)) {
+                return $data[$name[0]][$name[1]] ?? null;
             } else {
                 return $config[$name[0]][$name[1]] = $value;
             }
         }
-    } elseif (is_array($name)) {
+    } else if (is_array($name)) {
         return $config = array_merge($config, array_change_key_case($name, CASE_UPPER));
     }
 }
@@ -203,7 +192,7 @@ function C($name = null, $value = null)
  * @param int $time 跳转时间
  * @param string $msg
  */
-function go($url, $time = 0, $msg = '')
+function go(string $url, int $time = 0, string $msg = ''): void
 {
     if (!headers_sent()) {
         $time == 0 ? header("Location:" . $url) : header("refresh:{$time};url={$url}");
@@ -224,7 +213,7 @@ function go($url, $time = 0, $msg = '')
  * @param int $decimals 小数位
  * @return string
  */
-function runtime($start, $end = '', $decimals = 3)
+function runtime(string $start, string $end = '', int $decimals = 3): string
 {
     static $runtime = [];
     if ($end != '') {
@@ -232,13 +221,14 @@ function runtime($start, $end = '', $decimals = 3)
         return number_format($runtime [$end] - $runtime [$start], $decimals);
     }
     $runtime[$start] = microtime();
+    return '';
 }
 
 /**
  * HTTP状态信息设置
  * @param Number $code 状态码
  */
-function setHttpCode($code)
+function setHttpCode($code): void
 {
     $state = [
         200 => 'OK', // Success 2xx
@@ -263,7 +253,7 @@ function setHttpCode($code)
  * 是否为SSL协议
  * @return boolean
  */
-function is_ssl()
+function is_ssl(): bool
 {
     if (isset($_SERVER['HTTPS']) && ('1' == $_SERVER['HTTPS'] || 'on' == strtolower($_SERVER['HTTPS']))) {
         return true;
@@ -275,10 +265,10 @@ function is_ssl()
 
 /**
  * 打印常量
- * @return array
  */
-function print_const()
+function print_const(): void
 {
+    $const = [];
     $define = get_defined_constants(true);
     foreach ($define['user'] as $k => $d) {
         $const[$k] = $d;
@@ -291,7 +281,7 @@ function print_const()
  * @throws Exception
  */
 
-function halt($msg, $file = '', $line = '')
+function halt($msg, $file = '', $line = ''): void
 {
     \ay\drive\Error::instance()->init()->halt($msg, $file, $line);
 }
@@ -299,17 +289,17 @@ function halt($msg, $file = '', $line = '')
 /**
  * 无限级分类树
  */
-function tree($arr, $id = 'id', $pid = 'pid')
+function tree($arr, $id = 'id', $pid = 'pid'): array
 {
     $refer = [];
     $tree = [];
     foreach ($arr as $k => $v) {
-        $refer[$v[$id]] = &$arr[$k];
+        $refer[$v[$id]] = &$v;
     }
     foreach ($arr as $k => $v) {
         $sid = $v[$pid];
         if ($sid == 0) {
-            $tree[] = &$arr[$k];
+            $tree[] = &$v;
         } else {
             if (isset($refer[$sid])) {
                 $refer[$sid]['children'][] = &$arr[$k];
@@ -319,24 +309,15 @@ function tree($arr, $id = 'id', $pid = 'pid')
     return $tree;
 }
 
-function lastTime($date, $template)
+function lastTime($date, $template): string
 {
     $s = (time() - $date) / 60;
-    switch ($s) {
-        case ($s < 60) :
-            $msg = intval($s) . '分钟前';
-            break;
-        case ($s >= 60 && $s < (60 * 24)):
-            $msg = intval($s / 60) . '小时前';
-            break;
-        case ($s >= (60 * 24) and $s < (60 * 24 * 3)) :
-            $msg = intval($s / 60 / 24) . '天前';
-            break;
-        default :
-            $msg = date($template, $date);
-            break;
-    }
-    return $msg;
+    return match ($s) {
+        $s < 60 => intval($s) . '分钟前',
+        $s >= 60 && $s < (60 * 24) => intval($s / 60) . '小时前',
+        $s >= (60 * 24) and $s < (60 * 24 * 3) => intval($s / 60 / 24) . '天前',
+        default => date($template, $date),
+    };
 }
 
 // 获取客户端IP地址
@@ -360,7 +341,7 @@ function getIp()
     return $ip;
 }
 
-function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0)
+function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0): string
 {
     $ckey_length = 4;
 

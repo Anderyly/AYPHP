@@ -150,14 +150,10 @@ dump(xml::instance()->toArray(xml字符串));
 
 ```
 
-
-
-## 驱动库
-### 文件夹操作
 > 引入dir类
 
 ```php
-use ay\drive\Dir;
+use ay\lib\Dir;
 
 // 创建文件夹
 dump(Dir::instance()->create(PUB . "/s"));
@@ -186,7 +182,7 @@ dump(Dir::instance()->copy(PUB . "static/water", PUB . "static/water1"));
 > 引入image类
 
 ```php
-use ay\drive\Image;
+use ay\lib\Image;
 
 // 初始化image类 详细初始化信息 看构造函数
 $image = new Image();

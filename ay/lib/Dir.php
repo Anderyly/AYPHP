@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2018
  */
 
-namespace ay\drive;
+namespace ay\lib;
 
 use Exception;
 
@@ -59,7 +59,7 @@ class Dir
         foreach (glob($dirPath . '*') as $v) {
             $id++;
             if (is_dir($v) || !$ext || preg_match("/\.($ext)/i", $v)) {
-                $path = str_replace("\\", "/", realpath($v)) . (is_dir($v) ? '/' : '');
+                $path = Dir . phpstr_replace("\\", "/", realpath($v));
                 $list[$id]['type'] = filetype($v);
                 $list[$id]['filename'] = basename($v);
                 $list[$id]['path'] = $path;

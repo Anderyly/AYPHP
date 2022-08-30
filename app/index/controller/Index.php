@@ -3,8 +3,8 @@
 namespace app\index\controller;
 
 
-use ay\drive\Dir;
-use ay\drive\Image;
+use ay\lib\Dir;
+use ay\lib\Image;
 
 use ay\lib\Json;
 use ay\lib\Request;

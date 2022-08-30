@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2018
  */
 
-namespace ay\drive;
+namespace ay\lib;
 
 class Image
 {
@@ -186,7 +186,7 @@ class Image
         }
         //配置输出文件名
         $imgInfo = pathinfo($img);
-        $outFile = $outFile ? $outFile : dirname($img) . '/' . $this->thumbPreFix . $imgInfo['filename'] . $this->thumbEndFix . "." . $imgInfo['extension'];
+        $outFile = $outFile ? $outFile : dirname($img) . 'Image.php/' . $this->thumbPreFix . $imgInfo['filename'] . $this->thumbEndFix . "." . $imgInfo['extension'];
 
         Dir::create(dirname($outFile));
         $func = "image" . substr($imgType, 1);
