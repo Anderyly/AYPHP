@@ -55,7 +55,7 @@ class Error
         Log::error($msg . ' [' . $file . '(' . $line . ')]');
         if ($_SERVER['REQUEST_METHOD'] == 'cli') {
             exit($msg);
-        } else if (C('DEBUG')) {
+        } else if (C('APP.DEBUG')) {
             $e['message'] = $msg;
             $e['file'] = $file;
             $e['line'] = $line;

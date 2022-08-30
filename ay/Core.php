@@ -76,7 +76,7 @@ final class Core
     {
 
         // 设置默认时区
-        date_default_timezone_set(C('DEFAULT_TIME_ZONE'));
+        date_default_timezone_set(C('APP.DEFAULT_TIME_ZONE'));
         
         // 设置编码
         @header('Content-Type: text/html; charset=UTF-8');

@@ -2,7 +2,7 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link https://rmc.inkc/
+ * @link http://blog.aaayun.cc/
  * @copyright Copyright (c) 2018
  */
 
@@ -99,8 +99,8 @@ class Route
             unset($path_arr[0]);
 
             // 获取action
-            if (!strstr($path_arr[1], '.' . C('REWRITE'))) halt('伪静态配置错误');
-            $this->action = str_replace('.' . C('REWRITE'), '', $path_arr[1]);
+            if (!strstr($path_arr[1], '.' . C('APP.REWRITE'))) halt('伪静态配置错误');
+            $this->action = str_replace('.' . C('APP.REWRITE'), '', $path_arr[1]);
             unset($path_arr[1]);
 
             // 获取get
@@ -121,9 +121,9 @@ class Route
 
             //
         } else {
-            $this->mode = C('mode');
-            $this->controller = C('controller');
-            $this->action = C('action');
+            $this->mode = C('APP.MODE');
+            $this->controller = C('APP.CONTROLLER');
+            $this->action = C('APP.ACTION');
             self::$get = false;
         }
     }
@@ -133,10 +133,10 @@ class Route
         // 补全
         $num = count($path_arr);
         if ($num == $one) {
-            $path_arr[] = C('controller');
-            $path_arr[] = C('action');
+            $path_arr[] = C('APP.CONTROLLER');
+            $path_arr[] = C('APP.ACTION');
         } else if ($num == $two) {
-            $path_arr[] = C('action') . '.' . C('REWRITE');
+            $path_arr[] = C('APP.ACTION') . '.' . C('APP.REWRITE');
         }
         return $path_arr;
     }

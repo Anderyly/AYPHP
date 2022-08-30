@@ -41,7 +41,7 @@ class Db
 
         class_exists('PDO') or halt("PDO模块不存在");
         if (is_null($conf)) {
-            $conf = C();
+            $conf = C('DATABASE');
         }
 
         $this->dbType = $conf['DB_TYPE'];
@@ -102,7 +102,7 @@ class Db
             halt('不能设置数据表名为空');
         }
 
-        $tableS = C('DB_PRE') . $table;
+        $tableS = C('DATABASE.DB_PRE') . $table;
         self::$table = self::addChar($tableS);
         return new self();
     }

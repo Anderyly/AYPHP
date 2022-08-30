@@ -152,7 +152,7 @@ class Str
      */
     public function pinyin($_String, $charset = null)
     {
-        $charset = is_null($charset) ? preg_replace("/utf-8|utf8/i", "UTF-8", C("CHARSET")) : $charset;
+        $charset = is_null($charset) ? preg_replace("/utf-8|utf8/i", "UTF-8", C("APP.CHARSET")) : $charset;
         $_DataKey = "a|ai|an|ang|ao|ba|bai|ban|bang|bao|bei|ben|beng|bi|bian|biao|bie|bin|bing|bo|bu|ca|cai|can|cang|cao|ce|ceng|cha" .
             "|chai|chan|chang|chao|che|chen|cheng|chi|chong|chou|chu|chuai|chuan|chuang|chui|chun|chuo|ci|cong|cou|cu|" .
             "cuan|cui|cun|cuo|da|dai|dan|dang|dao|de|deng|di|dian|diao|die|ding|diu|dong|dou|du|duan|dui|dun|duo|e|en|er" .

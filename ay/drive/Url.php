@@ -34,7 +34,7 @@ class Url {
             default => URL . '/' . $mode . '/' . CONTROLLER . '/' . $arr[0],
         };
 
-        $path .= '.' . C('REWRITE');
+        $path .= '.' . C('APP.REWRITE');
 
         if (is_array($data)) {
             $path .= '?';

@@ -19,7 +19,7 @@ class Log
             mkdir($error, 0777, true);
         }
 
-        if (!C('SAVE_ERROR_LOG')) return;
+        if (!C('APP.SAVE_ERROR_LOG')) return;
         
         $dest = $error . date('Y_m_d') . '.log';
 
@@ -37,7 +37,7 @@ class Log
             mkdir($error, 0777, true);
         }
 
-        if (!C('SAVE_VISIT_LOG')) return;
+        if (!C('APP.SAVE_VISIT_LOG')) return;
 
         $dest = $error . date('Y_m_d') . '.log';
 

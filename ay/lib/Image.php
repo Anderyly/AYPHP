@@ -46,21 +46,21 @@ class Image
     public function __construct()
     {
         //水印参数
-        $this->waterOn = C("WATER_ON");
-        $this->waterImg = C("WATER_IMG");
-        $this->waterPos = C("WATER_POS");
-        $this->waterPct = C("WATER_PCT");
-        $this->waterQuality = C("WATER_QUALITY");
-        $this->waterText = C("WATER_TEXT");
-        $this->waterTextColor = C("WATER_TEXT_COLOR");
-        $this->waterTextSize = C("WATER_TEXT_SIZE");
-        $this->waterTextFont = C("WATER_FONT");
+        $this->waterOn = C("IMAGE.WATER_ON");
+        $this->waterImg = C("IMAGE.WATER_IMG");
+        $this->waterPos = C("IMAGE.WATER_POS");
+        $this->waterPct = C("IMAGE.WATER_PCT");
+        $this->waterQuality = C("IMAGE.WATER_QUALITY");
+        $this->waterText = C("IMAGE.WATER_TEXT");
+        $this->waterTextColor = C("IMAGE.WATER_TEXT_COLOR");
+        $this->waterTextSize = C("IMAGE.WATER_TEXT_SIZE");
+        $this->waterTextFont = C("IMAGE.WATER_FONT");
         //缩略图参数
-        $this->thumbType = C("THUMB_TYPE");
-        $this->thumbWidth = C("THUMB_WIDTH");
-        $this->thumbHeight = C("THUMB_HEIGHT");
-        $this->thumbPreFix = C("THUMB_PREFIX");
-        $this->thumbEndFix = C("THUMB_END_FIX");
+        $this->thumbType = C("IMAGE.THUMB_TYPE");
+        $this->thumbWidth = C("IMAGE.THUMB_WIDTH");
+        $this->thumbHeight = C("IMAGE.THUMB_HEIGHT");
+        $this->thumbPreFix = C("IMAGE.THUMB_PREFIX");
+        $this->thumbEndFix = C("IMAGE.THUMB_END_FIX");
     }
 
     /**

@@ -8,7 +8,7 @@
 
 namespace ay\lib;
 
-use ay\drive\Dir;
+use ay\lib\Dir;
 
 class Upload
 {
@@ -32,13 +32,13 @@ class Upload
      */
     public function __construct($path = null, $ext = array(), $size = null)
     {
-        $path = $path ? $path : C("UPLOAD_PATH"); //上传路径
+        $path = $path ? $path : C("FILE.UPLOAD_PATH"); //上传路径
         $this->path = $path;
         //上传类型
-        $ext = $ext ? $ext : C("UPLOAD_ALLOW_TYPE");
+        $ext = $ext ? $ext : C("FILE.UPLOAD_ALLOW_TYPE");
         $this->ext = $ext;
         //允许大小
-        $this->size = $size ? $size : C("UPLOAD_ALLOW_SIZE");
+        $this->size = $size ? $size : C("FILE.UPLOAD_ALLOW_SIZE");
     }
 
     /**

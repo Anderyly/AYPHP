@@ -18,4 +18,5 @@ return [
     'action' => 'index',
     'CACHE' => true,
     'CACHE_TIME' => 1,
+    'CHARSET' => 'UTF-8'
 ];

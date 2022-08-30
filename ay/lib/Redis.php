@@ -24,7 +24,7 @@ class Redis
         if (is_array($conf)) {
             $options = $conf;
         } else {
-            $options = C();
+            $options = C('REDIS');
         }
         if (!extension_loaded('redis')) {
             exit('not support: redis');

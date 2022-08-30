@@ -14,7 +14,7 @@ class Model extends Db
 {
     public function __construct()
     {
-        $option = C();
+        $option = C('DATABASE');
         parent::__construct($option);
     }
 

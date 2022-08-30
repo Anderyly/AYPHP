@@ -57,13 +57,13 @@ class View
 
         $encryptFilePath = CACHE . md5(MODE . CONTROLLER . MODE . $filePath);
 
-        if (!C('CACHE')) {
+        if (!C('APP.CACHE')) {
             self::isFile(self::remPlacer($filePath, null), $data);
         } else {
             //
             if (is_file($encryptFilePath . '.html')) {
                 $fileT = filemtime($encryptFilePath . '.html');
-                if ((time() - $fileT) >= C('CACHE_TIME')) {
+                if ((time() - $fileT) >= C('APP.CACHE_TIME')) {
                     self::isFile(self::remPlacer($filePath, $encryptFilePath . '.html'), $data);
                 } else {
                     self::isFile($encryptFilePath . '.html', $data);
@@ -85,7 +85,7 @@ class View
      */
     private static function remPlacer(string $filePath, string $encryptFilePath): string
     {
-        $cache = C('CACHE');
+        $cache = C('APP.CACHE');
 
         if ($cache) {
             $content = @file_get_contents($filePath);
@@ -95,7 +95,7 @@ class View
 
             // 引入模板
             $content = self::merge($content);
-            $content = preg_replace(C('CacheMatch'), C('CacheReplace'), $content);
+            $content = preg_replace(C('APP.CacheMatch'), C('APP.CacheReplace'), $content);
             @file_put_contents($encryptFilePath, $content);
 
             return $encryptFilePath;
@@ -146,7 +146,7 @@ class View
                     $lll = $kkk;
                 }
 
-                preg_match(C('CacheTemplate1'), $lll, $sr);
+                preg_match(C('APP.CacheTemplate1'), $lll, $sr);
                 $filename = $sr[1];
                 $arr = explode('/', $filename);
 
@@ -165,7 +165,7 @@ class View
                 if (!is_file(($filename))) {
                     halt('找不到:' . $filename . ' 模板');
                 }
-                $kkk = preg_replace(C('CacheTemplate'), $cls, $lll, 1);
+                $kkk = preg_replace(C('APP.CacheTemplate'), $cls, $lll, 1);
             }
             $content = $kkk;
         }

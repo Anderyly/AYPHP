@@ -14,6 +14,10 @@ use ay\lib\Xml;
 class Index
 {
 
+    public function c() {
+        dump(C());
+    }
+
     public function json() {
 
         $data = [

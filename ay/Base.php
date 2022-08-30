@@ -56,12 +56,12 @@ foreach ($configFileArr as $v) {
     if (!str_contains($v, '.php') or $v == '.' or $v == '..') {
         continue;
     }
-    C(include CONFIG . $v);
+    C([str_replace('.php', '', $v) => include CONFIG . $v]);
 }
 
 // 错误类
 error_reporting(0);
-if (C('DEBUG')) {
+if (C('APP.DEBUG')) {
     ini_set('display_errors', 'On');
 } else {
     ini_set('display_errors', 'off');
@@ -76,7 +76,7 @@ foreach ($userCommonFile as $v) {
         continue;
     }
 
-    C(include APP_CONFIG . $v);
+    C([str_replace('.php', '', $v) => include APP_CONFIG . $v]);
 }
 
 // 加载用户自定义函数

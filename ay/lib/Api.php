@@ -13,16 +13,18 @@ use ay\lib\Json;
 class Api
 {
 
-    public $data = [];
-    public $rule = [];
-    public $time = 6000;
-    public $mode = 'api';
-    public $key = "anderyly";
+    public array $data = [];
+    public array $rule = [];
+    public int $time = 6000;
+    public string $mode = 'api';
+    public string $key;
 
     public function __construct($mode = null, $rule = null, $key = null, $time = 6000, $status = 1, $format = 'param')
     {
         if (!is_null($key)) {
             $this->key = $key;
+        } else {
+            $this->key = C("APP.KEY");
         }
 
         if (!is_null($time)) {
