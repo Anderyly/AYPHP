@@ -11,20 +11,53 @@ use ay\lib\Request;
 use ay\lib\Session;
 use ay\lib\Xml;
 
+use ay\lib\Cache;
+
 class Index
 {
 
-    public function c() {
-        dump(C());
+    public function cache()
+    {
+
+        // 设置缓存
+        dump(Cache::instance()->set('data', '123'));
+
+        // 取出缓存
+        dump(Cache::instance()->get('data'));
+
+        // 删除指定缓存
+        Cache::instance()->del('data');
+
+        // 删除全部缓存
+        Cache::instance()->delAll();
+
+        dump(Cache::instance()->get('data'));
+
     }
 
-    public function json() {
+    public function c()
+    {
+        // 输出全部预定义
+        dump(C());
+
+        // 改变指定并返回值
+        dump(C('APP.DEBUG', 123));
+
+        // 增加并返回值
+        dump(C('AAA.ACV', 123));
+
+        dump(C());
+
+    }
+
+    public function json()
+    {
 
         $data = [
             "list" => [
-                ["id"=>1],
-                ["id"=>2],
-                ["id"=>3],
+                ["id" => 1],
+                ["id" => 2],
+                ["id" => 3],
             ]
         ];
 
@@ -33,7 +66,8 @@ class Index
         Json::msg(200, "success", $data, $arr);
     }
 
-    public function session() {
+    public function session()
+    {
         // 设置
         dump(Session::set("user", "123"));
         // 获取

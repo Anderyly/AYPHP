@@ -193,3 +193,42 @@ echo $image->thumb(PUB . "static/water/h.png", PUB . "static/water/h1.png", 100,
 // 添加水印
 var_dump($image->water(PUB . "static/water/h.png", PUB . "static/water/h2.png", [100, 100], "", 1, "123"));
 ```
+
+### 缓存类
+> 引入Cache类
+
+```php
+use ay\lib\Cache;
+
+// 设置指定缓存
+dump(Cache::instance()->set('data', '123'));
+
+// 取出指定缓存
+dump(Cache::instance()->get('data'));
+
+// 删除指定缓存
+Cache::instance()->del('data');
+
+// 删除全部缓存
+Cache::instance()->delAll();
+
+dump(Cache::instance()->get('data'));
+
+```
+
+## 助手函数
+
+### C方法
+```php
+// 输出全部预定义
+dump(C());
+
+// 改变指定并返回值
+dump(C('APP.DEBUG', 123));
+
+// 增加并返回值
+dump(C('AAA.ACV', 123));
+
+dump(C());
+
+```
