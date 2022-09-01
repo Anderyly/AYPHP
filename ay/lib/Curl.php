@@ -139,6 +139,7 @@ class Curl
     public function cert($file)
     {
         curl_setopt($this->ch, CURLOPT_CAINFO, $file);
+        return $this;
     }
 
     /**

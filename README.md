@@ -216,6 +216,29 @@ dump(Cache::instance()->get('data'));
 
 ```
 
+### Curl类
+> 引入Curl类
+
+```php
+use ay\lib\Curl;
+
+$url = "https://blog.aaayun.cc/test.php";
+$ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36';
+
+dump(
+    Curl::url($url)
+        ->userAgent($ua) // 设置ua
+        ->referer('') // 设置来源
+        ->param(['user' => '测试数据']) // 设置参数
+        ->time(10) // 最大超时时间
+        ->proxy('127.0.0.1', 1080) // 设置代理
+        ->show(true) // 显示repose信息
+        ->cert('') // 设置证书
+        ->post()
+);
+```
+
+
 ### Api类
 > 详细使用请看Api控制器
 
