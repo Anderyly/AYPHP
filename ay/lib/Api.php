@@ -19,7 +19,15 @@ class Api
     public string $mode = 'api';
     public string $key;
 
-    public function __construct($mode = null, $rule = null, $key = null, $time = 6000, $status = 1, $format = 'param')
+    /***
+     * @param null $mode [模块]
+     * @param null $rule [不验证路由]
+     * @param null $key [密钥]
+     * @param int $time [超时时间差 毫秒]
+     * @param bool $status [不验证时间戳]
+     * @param string $format [获取参数方式 param get post]
+     */
+    public function __construct($mode = null, $rule = null, $key = null, int $time = 60000, bool $status = true, string $format = 'param')
     {
         if (!is_null($key)) {
             $this->key = $key;
@@ -40,13 +48,13 @@ class Api
         }
 
         $this->data = R($format);
-        if ($status == 1) {
+        if ($status) {
             $this->checkTimeSign($this->data);
         }
 
     }
 
-    private function checkTimeSign($data)
+    private function checkTimeSign($data): void
     {
 
         $other = strtolower('/' . $this->mode . '/' . CONTROLLER . '/' . ACTION);
@@ -94,7 +102,7 @@ class Api
         $this->data = $data;
     }
 
-    private function getTime()
+    private function getTime(): float
     {
         $arr = explode('.', microtime(true));
         return (float) ($arr[0] . substr($arr[1], 0, 3));

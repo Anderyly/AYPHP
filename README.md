@@ -216,6 +216,9 @@ dump(Cache::instance()->get('data'));
 
 ```
 
+### Api类
+> 详细使用请看Api控制器
+
 ## 助手函数
 
 ### C方法
