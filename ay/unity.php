@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2018
  */
 
-use ay\lib\View;
+use ay\drive\View;
 
 /**
  * 跳转函数
@@ -92,7 +92,7 @@ function R($str = NULL, $type = null): array|float|bool|int|string|null
 function controller($name, $vae = ''): void
 {
     try {
-        \ay\lib\Controller::instance()->controller($name, $vae);
+        \ay\drive\Controller::instance()->controller($name, $vae);
     } catch (Exception $e) {
         halt("加载控制器失败！");
     }
@@ -182,6 +182,8 @@ function C(array|string $name = '', string $value = ''): array|string|null
         }
     } else if (is_array($name)) {
         return $config = array_merge($config, array_change_key_case($name, CASE_UPPER));
+    } else {
+        return '';
     }
 }
 
@@ -341,28 +343,28 @@ function getIp()
     return $ip;
 }
 
-function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0): string
+function authCode($string, $operation = 'DECODE', $key = '', $expiry = 0): string
 {
-    $ckey_length = 4;
+    $keyLength = 4;
 
-    $key = md5($key ? $key : 'anderyly');
-    $keya = md5(substr($key, 0, 16));
-    $keyb = md5(substr($key, 16, 16));
-    $keyc = $ckey_length ? ($operation == 'DECODE' ? substr($string, 0, $ckey_length) :
-        substr(md5(microtime()), -$ckey_length)) : '';
-    $cryptkey = $keya . md5($keya . $keyc);
-    $key_length = strlen($cryptkey);
-    $string = $operation == 'DECODE' ? base64_decode(substr($string, $ckey_length)) :
-        sprintf('%010d', $expiry ? $expiry + time() : 0) . substr(md5($string . $keyb), 0, 16) . $string;
+    $key = md5($key ? $key : C('APP.KEY'));
+    $keaA = md5(substr($key, 0, 16));
+    $keyB = md5(substr($key, 16, 16));
+    $keyC = $keyLength ? ($operation == 'DECODE' ? substr($string, 0, $keyLength) :
+        substr(md5(microtime()), -$keyLength)) : '';
+    $cryptKey = $keaA . md5($keaA . $keyC);
+    $keyLength = strlen($cryptKey);
+    $string = $operation == 'DECODE' ? base64_decode(substr($string, $keyLength)) :
+        sprintf('%010d', $expiry ? $expiry + time() : 0) . substr(md5($string . $keyB), 0, 16) . $string;
     $string_length = strlen($string);
     $result = '';
     $box = range(0, 255);
-    $rndkey = array();
+    $randKey = array();
     for ($i = 0; $i <= 255; $i++) {
-        $rndkey[$i] = ord($cryptkey[$i % $key_length]);
+        $randKey[$i] = ord($cryptKey[$i % $keyLength]);
     }
     for ($j = $i = 0; $i < 256; $i++) {
-        $j = ($j + $box[$i] + $rndkey[$i]) % 256;
+        $j = ($j + $box[$i] + $randKey[$i]) % 256;
         $tmp = $box[$i];
         $box[$i] = $box[$j];
         $box[$j] = $tmp;
@@ -378,12 +380,12 @@ function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0): strin
     if ($operation == 'DECODE') {
 
         if ((substr($result, 0, 10) == 0 || substr($result, 0, 10) - time() > 0) &&
-            substr($result, 10, 16) == substr(md5(substr($result, 26) . $keyb), 0, 16)) {
+            substr($result, 10, 16) == substr(md5(substr($result, 26) . $keyB), 0, 16)) {
             return substr($result, 26);
         } else {
             return '';
         }
     } else {
-        return $keyc . str_replace('=', '', base64_encode($result));
+        return $keyC . str_replace('=', '', base64_encode($result));
     }
 }

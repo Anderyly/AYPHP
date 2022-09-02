@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2018
  */
 
-namespace ay\lib;
+namespace ay\drive;
 
 use ay\lib\Db;
 

@@ -2,7 +2,7 @@
 /**
  * @author anderyly
  * @email admin@aaayun.cc
- * @link http://blog.aaayun.cc
+ * @link http://blog.aaayun.cc/
  * @copyright Copyright (c) 2018
  */
 
@@ -27,15 +27,14 @@ class Route
     public function router()
     {
 
-        $path = CONFIG . '/route.php';
+        $path = ROOT . '/' . APP_NAME . '/route.php';
         $path = str_replace('//', '/', $path);
 
         if (is_file($path)) {
-            $rules = require $path;
+            $rules = include_once $path;
         } else {
             $rules = [];
         }
-//        p($rules);
 
         if (isset($_SERVER['REQUEST_URI']) and !empty($rules)) {
             $pathInfo = ltrim($_SERVER['REQUEST_URI'], "/");
@@ -63,58 +62,51 @@ class Route
         if ($path != '/') {
 
             $path = str_replace('//', '/', $path);
-            $pathArr = explode('/', trim($path, '/'));
+            $path_arr = explode('/', trim($path, '/'));
 
             // 允许public文件访问
-            if ($pathArr[0] == 'public') {
+            if ($path_arr[0] == 'public') {
                 file_get_contents(ROOT . $path);
                 exit;
             }
 
-            // 获取mode 三种模式 绑定模块 版本分类 默认模式
+            // 获取mode
             switch (true) {
                 case (defined('BIND')):
-                    define('CIND', str_replace('.php', '', $pathArr[0]));
-                    $pathArr = $this->bq($pathArr);
-                    $this->mode = BIND;
-                    unset($pathArr[0]);
+                    $path_arr = $this->bq($path_arr);
+                    $this->mode = str_replace('.php', '', $path_arr[0]);
+                    unset($path_arr[0]);
                     break;
                 case (defined('VIND')):
-                    if (!isset($pathArr[1])) $pathArr[1] = C('mode');
-                    $this->mode = str_replace('.php', '/' . $pathArr[1], $pathArr[0]);
-                    unset($pathArr[0]);
-                    unset($pathArr[1]);
+                    if (!isset($path_arr[1])) {
+                        halt('版本控制使用错误');
+                    }
+                    $path_arr = $this->bq($path_arr, 2, 3);
+                    $this->mode = str_replace('.php', '/' . $path_arr[1], $path_arr[0]);
+                    unset($path_arr[0]);
+                    unset($path_arr[1]);
                     break;
                 default:
-                    $pathArr = $this->bq($pathArr);
-                    if (strstr($pathArr[0], '.php')) {
-                        $this->mode = str_replace('.php', '', $pathArr[1]);
-                        unset($pathArr[0]);
-                        unset($pathArr[1]);
-                    } else {
-                        $this->mode = str_replace('.php', '', $pathArr[0]);
-                        unset($pathArr[0]);
-                    }
+                    $path_arr = $this->bq($path_arr);
+                    $this->mode = str_replace('.php', '', $path_arr[0]);
+                    unset($path_arr[0]);
+            }
 
-            };
-//            echo $this->mode;exit;
-            $pathArr = array_merge($pathArr);
+            $path_arr = array_merge($path_arr);
 
             // 获取controller
-            if (!isset($pathArr[0])) $pathArr[0] = C('controller');
-            $this->controller = $pathArr[0];
-            unset($pathArr[0]);
-
+            $this->controller = $path_arr[0];
+            unset($path_arr[0]);
 
             // 获取action
-            if (!isset($pathArr[1])) $pathArr[1] = C('action');
-            $this->action = str_replace('.' . C('REWRITE'), '', $pathArr[1]);
-            unset($pathArr[1]);
+            if (!str_contains($path_arr[1], '.' . C('APP.REWRITE')) and !empty(C('APP.REWRITE'))) halt('页面不存在');
+            $this->action = str_replace('.' . C('APP.REWRITE'), '', $path_arr[1]);
+            unset($path_arr[1]);
 
             // 获取get
-            if (!empty($pathArr)) {
+            if (!empty($path_arr)) {
                 $sum = 1;
-                foreach ($pathArr as $item):
+                foreach ($path_arr as $item):
                     if ($sum % 2 != 0) {
                         $this->field = $item;
                     } else {
@@ -129,24 +121,25 @@ class Route
 
             //
         } else {
-            $this->mode = C('mode');
-            $this->controller = C('controller');
-            $this->action = C('action');
+
+            $this->mode = C('APP.MODE');
+            $this->controller = C('APP.CONTROLLER');
+            $this->action = C('APP.ACTION');
             self::$get = false;
         }
     }
 
-    private function bq($pathArr, $one = 1, $two = 2)
+    private function bq($path_arr, $one = 1, $two = 2)
     {
         // 补全
-        $num = count($pathArr);
+        $num = count($path_arr);
         if ($num == $one) {
-            $pathArr[] = C('controller');
-            $pathArr[] = C('action');
+            $path_arr[] = C('APP.CONTROLLER');
+            $path_arr[] = C('APP.ACTION');
         } else if ($num == $two) {
-            $pathArr[] = C('action') . '.' . C('REWRITE');
+            $path_arr[] = C('APP.ACTION') . 'lib' . C('APP.REWRITE');
         }
-        return $pathArr;
+        return $path_arr;
     }
 
 }

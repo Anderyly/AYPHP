@@ -55,7 +55,7 @@ final class Core
                 if (file_exists(APP_PATH . MODE . "/function.php")) {
                     require_once APP_PATH . MODE . "/function.php";
                 }
-                $res = call_user_func_array(array($controllerS, $action), []);
+                $res = call_user_func_array([$controllerS, $action], []);
                 if (is_string($res)) {
                     echo $res;
                 }

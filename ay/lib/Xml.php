@@ -10,7 +10,7 @@ namespace ay\lib;
 
 class Xml
 {
-    
+
     public static function instance(): Xml
     {
         return new self();
@@ -18,8 +18,8 @@ class Xml
 
     /**
      * 创建xml文件
-     * @param array $data     数据
-     * @param string $root     根据节点
+     * @param array $data 数据
+     * @param string $root 根据节点
      * @param string $encoding 编码
      * @return string          XML字符串
      */
@@ -81,9 +81,9 @@ class Xml
             if (is_object($v) || is_array($v)) {
                 $xml .= $this->formatXml($v);
             } else {
-                $xml .= str_replace(array("&", "<", ">", "\"", "'", "-"), array("&amp;", "&lt;", "&gt;", "&quot;", "&apos;", "&#45;"), $v);
+                $xml .= str_replace(["&", "<", ">", "\"", "'", "-"], ["&amp;", "&lt;", "&gt;", "&quot;", "&apos;", "&#45;"], $v);
             }
-            list($k, ) = explode(" ", $k);
+            list($k,) = explode(" ", $k);
             $xml .= "</$k>";
         }
         return $xml;
@@ -92,7 +92,7 @@ class Xml
     /**
      * 解析编译后的内容为数组
      * @param array $arrData 数组数据
-     * @param int $i       层级
+     * @param int $i 层级
      * @return array    数组
      */
     private function getData(array $arrData, int &$i): array
