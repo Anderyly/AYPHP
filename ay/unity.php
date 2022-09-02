@@ -36,28 +36,32 @@ function dump(object|bool|array|string|null $arr): void
 }
 
 /**
- * 打印函数
- * @param string $msg
- * @param null $alink 跳转链接
+ * @param string $msg 输出内容
+ * @param string $alink 跳转链接
+ * @throws Exception
  */
-function fail(string $msg = '页面错误！请稍后再试～', $alink = null): void
+function fail(string $msg = '页面错误！请稍后再试～', string $alink = ''): void
 {
+    assign('title', '操作失败');
+    assign('type', 0);
     assign('msg', $msg);
-    if (!is_null($alink)) assign('link', $alink);
-    view(TEMPLATE . '/fail.html');
+    if (!empty($alink)) assign('link', $alink);
+    view(TEMPLATE . '/option.html');
     exit;
 }
 
 /**
- * 打印函数
  * @param string $msg 输出内容
- * @param string|null $alink 跳转链接
+ * @param string $alink 跳转链接
+ * @throws Exception
  */
-function success(string $msg = '操作成功～', string $alink = null): void
+function success(string $msg = '操作成功～', string $alink = ''): void
 {
+    assign('title', '操作成功');
+    assign('type', 1);
     assign('msg', $msg);
-    if (!is_null($alink)) assign('link', $alink);
-    view(TEMPLATE . '/success.html');
+    if (!empty($alink)) assign('link', $alink);
+    view(TEMPLATE . '/option.html');
     exit;
 }
 
@@ -82,6 +86,7 @@ function R($str = NULL, $type = null): array|float|bool|int|string|null
         'post' => \ay\lib\Request::instance()->post($hm, $type),
         'url' => \ay\lib\Request::instance()->url(),
         'file' => \ay\lib\Request::instance()->file($hm),
+        '?file' => \ay\lib\Request::instance()->has($hm, 'file'),
         'param' => \ay\lib\Request::instance()->param(),
         '?get' => \ay\lib\Request::instance()->has($hm, 'get'),
         '?post' => \ay\lib\Request::instance()->has($hm, 'post'),

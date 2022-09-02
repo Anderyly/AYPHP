@@ -244,6 +244,30 @@ dump(
 
 ## 助手函数
 
+### R方法
+```php
+// 获取所有post参数
+dump(R('post.'));
+
+// 验证post下ids参数是否存在
+dump(R('?post.ids'));
+
+// 获取所有get参数
+dump(R('get.'));
+
+// 验证get下id参数是否存在
+dump(R('?get.id'));
+
+// 获取所有参数 注意 会多返回一个s参数 此参数为当前路由
+dump(R('param'));
+        
+// 获取所有文件参数
+dump(R('file'));
+
+// 验证file下file参数是否存在
+dump(R('?file.file'));
+```
+
 ### C方法
 ```php
 // 输出全部预定义

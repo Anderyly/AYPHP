@@ -32,6 +32,10 @@ class View
             mkdir(CACHE, 0777, true);
         }
 
+        defined('MODE') or define('MODE', "error");
+        defined('CONTROLLER') or define('CONTROLLER', "error");
+        defined('ACTION') or define('ACTION', "error");
+
         if (empty($filePath)) {
             $filePath = APP_PATH . MODE . '/view/' . strtolower(CONTROLLER) . '/' . ACTION . '.html';
         } else {
@@ -39,15 +43,16 @@ class View
             $suffix = strchr($filePath, '.', false);
             $arr = explode('/', $filePath);
             $num = count($arr);
+
             switch ($num) {
-                case ($num == 3) :
+                case 3 :
                     $filePath = empty($suffix) ? APP_PATH . $arr[0] . '/view/' . $arr[1] . '/' . $arr[2] . '.html' : APP_PATH . $arr[0] . '/view/' . $arr[1] . '/' . $arr[2];
                     break;
-                case ($num == 2) :
-                    $filePath = empty($suffix) ? APP_PATH . $arr[0] . '/view/' . $arr[1] . '.html' : APP_PATH . MODE . '/view/' . $filePath;
+                case 2 :
+                    $filePath = empty($suffix) ? APP_PATH . $arr[0] . '/view/' . $filePath . '.html' : APP_PATH . MODE . '/view/' . $filePath;
                     break;
-                case ($num == 1) :
-                    $filePath = empty($suffix) ? APP_PATH . MODE . '/view/' . $arr[0] . '.html' : APP_PATH . MODE . '/view/' . $arr[0];
+                case 1 :
+                    $filePath = empty($suffix) ? APP_PATH . MODE . '/view/' . strtolower(CONTROLLER) . '/' . $arr[0] . '.html' : APP_PATH . MODE . '/view/' . strtolower(CONTROLLER) . '/' . $arr[0];
                     break;
                 default :
                     break;
@@ -55,22 +60,25 @@ class View
             //
         }
 
-        $encryptFilePath = CACHE . md5(MODE . CONTROLLER . MODE . $filePath);
+        if (!file_exists(CACHE . "/html/")) {
+            mkdir(CACHE . "/html/", 0777, true);
+        }
+        $entityFilePath = CACHE . "/html/" . md5(MODE . CONTROLLER . MODE . $filePath);
 
         if (!C('APP.CACHE')) {
             self::isFile(self::remPlacer($filePath, null), $data);
         } else {
             //
-            if (is_file($encryptFilePath . '.html')) {
-                $fileT = filemtime($encryptFilePath . '.html');
-                if ((time() - $fileT) >= C('APP.CACHE_TIME')) {
-                    self::isFile(self::remPlacer($filePath, $encryptFilePath . '.html'), $data);
+            if (is_file($entityFilePath . '.html')) {
+                $fileT = filemtime($entityFilePath . '.html');
+                if ((time() - $fileT) >= C('CACHE_TIME')) {
+                    self::isFile(self::remPlacer($filePath, $entityFilePath . '.html'), $data);
                 } else {
-                    self::isFile($encryptFilePath . '.html', $data);
+                    self::isFile($entityFilePath . '.html', $data);
                 }
                 //
             } else {
-                self::isFile(self::remPlacer($filePath, $encryptFilePath . '.html'), $data);
+                self::isFile(self::remPlacer($filePath, $entityFilePath . '.html'), $data);
             }
             //
         }
@@ -79,26 +87,36 @@ class View
     /**
      * 模板替换
      * @param string $filePath 原模板地址
-     * @param string $encryptFilePath 加密后的模板地址
+     * @param string $entityFilePath 加密后的模板地址
      * @return string
      * @throws Exception
      */
-    private static function remPlacer(string $filePath, string $encryptFilePath): string
+    private static function remPlacer(string $filePath, string $entityFilePath): string
     {
         $cache = C('APP.CACHE');
 
         if ($cache) {
-            $content = @file_get_contents($filePath);
-            if (!is_file($filePath)) {
+//            echo $filePath;exit;
+            if (is_file($filePath)) {
+                $content = @file_get_contents($filePath);
+            } else {
                 halt('找不到:' . $filePath . ' 模板');
             }
 
             // 引入模板
             $content = self::merge($content);
-            $content = preg_replace(C('APP.CacheMatch'), C('APP.CacheReplace'), $content);
-            @file_put_contents($encryptFilePath, $content);
+            $content = self::judge($content);
+//            $content = str_replace(C('TPL_TAG_LEFT') . 'elseif(', '<?php } else if (', $content);
+            $content = str_replace('{{$', '<?php echo $', $content);
+            $content = str_replace('{{:', '<?php echo $return = ', $content);
+            //$content = str_replace(':url', ' echo $return = ', $content);
+            $content = str_replace("{{", '<?php ', $content);
+            $content = str_replace(';$', ';echo $', $content);
+            /*            $content = str_replace(':' . C('TPL_TAG_RIGHT') . C('TPL_TAG_RIGHT'), '{ ?>', $content);*/
+            $content = str_replace("}}", ';?>', $content);
+            @file_put_contents($entityFilePath, $content);
 
-            return $encryptFilePath;
+            return $entityFilePath;
         }
         return $filePath;
     }
@@ -109,10 +127,10 @@ class View
      * @param array $data 传递的数据
      * @throws Exception
      */
-    private static function isFile(string $path, array $data = []): void
+    private static function isFile(string $path, array $data): void
     {
 
-        if (count($data) == 0) {
+        if (!empty($data)) {
             extract(array_merge($data, self::$data), EXTR_OVERWRITE, '');
         } else {
             extract(self::$data, EXTR_OVERWRITE, '');
@@ -128,14 +146,28 @@ class View
         }
     }
 
+    public static function judge($content)
+    {
+        if (str_contains($content, C('APP.TPL_TAG_LEFT') . "if")) {
+
+            $content = str_replace('{{else}}', '<?php } else { ?>', $content);
+            $content = str_replace('{{if}}', '<?php } ?>', $content);
+            $content = preg_replace('#elif.*code=\"(.*?)\"#', ' } else if (${1}) { ', $content);
+            $content = preg_replace('#if.*code=\"(.*?)\"#', ' if (${1}) { ', $content);
+        }
+        return $content;
+
+    }
+
     /**
      * @param string $content 模板内容
+     * @return string|string[]|null
      * @throws Exception
      */
     private static function merge(string $content): array|string|null
     {
-        if (str_contains($content, "{@")) {
-            $count = substr_count($content, '{@');
+        if (str_contains($content, "{{@")) {
+            $count = substr_count($content, '{{@');
             for ($i = 1; $i <= $count; $i++) {
                 if (!isset($lll)) {
                     $lll = $content;
@@ -146,26 +178,25 @@ class View
                     $lll = $kkk;
                 }
 
-                preg_match(C('APP.CacheTemplate1'), $lll, $sr);
-                $filename = $sr[1];
+                $filename = substr($lll, strpos($lll, "{{@") + strlen("{{") + 1, strpos($lll, "}}") - 1);
+                $filename = preg_replace("#}}.*#is", '', $filename);
                 $arr = explode('/', $filename);
 
                 if (count($arr) == 3) {
                     $filename = APP_PATH . $arr[0] . '/view/' . $arr[1] . '/' . $arr[2];
-                } else if (count($arr) == 2) {
+                } elseif (count($arr) == 2) {
                     $filename = APP_PATH . MODE . '/view/' . $arr[0] . '/' . $arr[1];
-                } else if (count($arr) == 1) {
-                    $filename = APP_PATH . MODE . '/view/' . ACTION . '/' . $arr[0];
                 }
 
                 if (!strpos($filename, 'html')) {
                     $filename .= '.html';
                 }
-                $cls = file_get_contents($filename);
-                if (!is_file(($filename))) {
+                if (is_file(($filename))) {
+                    $cls = file_get_contents($filename);
+                } else {
                     halt('找不到:' . $filename . ' 模板');
                 }
-                $kkk = preg_replace(C('APP.CacheTemplate'), $cls, $lll, 1);
+                $kkk = preg_replace("/{{@.*?}}/", $cls, $lll, 1);
             }
             $content = $kkk;
         }

@@ -170,6 +170,9 @@ class Request
             case 'get':
                 $return = array_key_exists($field, $this->get());
                 break;
+            case 'file':
+                $return = array_key_exists($field, $this->file());
+                break;
             case 'delete':
                 $return = array_key_exists($field, $this->delete());
                 break;
