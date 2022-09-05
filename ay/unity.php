@@ -94,7 +94,13 @@ function R($str = NULL, $type = null): array|float|bool|int|string|null
     };
 }
 
-function controller($name, $vae = ''): void
+/***
+ * @param string $name
+ * @param string $vae
+ * @return void
+ * @throws Exception
+ */
+function controller(string $name, string $vae = ''): void
 {
     try {
         \ay\drive\Controller::instance()->controller($name, $vae);

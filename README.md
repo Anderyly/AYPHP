@@ -282,3 +282,41 @@ dump(C('AAA.ACV', 123));
 dump(C());
 
 ```
+
+### success&&fail方法
+
+```php
+success('操作成功', 'http://baidu.com');
+fail('操作失败', 'http://baidu.com');
+```
+
+### 无限级分类树
+
+```php
+$arr = [
+    ['id' => 1, 'pid' => 0, 'name' => '一级'],
+    ['id' => 2, 'pid' => 1, 'name' => '二级'],
+    ['id' => 3, 'pid' => 2, 'name' => '三级'],
+];
+dump(tree($arr, 'id', 'pid'));
+```
+
+### 其它常用方法
+
+```php
+// 导入extends目录下扩展包
+extends('pay/alipay.php');
+$pay = new AliPay();
+
+// 获取来源ip
+dump(getIp());
+
+// 判断当前是否是ssl
+dump(is_ssl());
+
+// 抛出异常
+halt();
+
+// 跳转
+go('http://baidu.com/', 3, "系统正在重定向");
+```
