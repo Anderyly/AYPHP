@@ -238,6 +238,14 @@ dump(
 );
 ```
 
+### Upload类
+use ay\lib\Upload;
+
+```php
+
+$upload = new Upload(PUB . 'upload/', ['txt']);
+dump($upload->operate('file'));
+```
 
 ### Api类
 > 详细使用请看Api控制器

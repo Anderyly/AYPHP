@@ -14,23 +14,23 @@ class Upload
 {
 
     //上传类型
-    public $ext = array();
+    public $ext = [];
     //上传文件大小
-    public $size;
+    public string|array|null $size;
     //上传路径
-    public $path;
+    public string|array|null $path;
     //错误信息
-    public $error;
+    public string $error;
     //上传成功文件信息
-    public $uploadedFile = array();
+    public array $uploadedFile = [];
 
     /**
      * 构造函数
-     * @param string $path 上传路径
+     * @param string|null $path 上传路径
      * @param array $ext 允许的文件类型
-     * @param array $size 允许上传大小
+     * @param array|null $size 允许上传大小
      */
-    public function __construct($path = null, $ext = array(), $size = null)
+    public function __construct(string $path = null, array $ext = [], array $size = null)
     {
         $path = $path ? $path : C("FILE.UPLOAD_PATH"); //上传路径
         $this->path = $path;
@@ -47,7 +47,7 @@ class Upload
      * @param null $fieldName 上传的图片name名
      * @return array|bool
      */
-    public function operate($fieldName = null)
+    public function operate($fieldName = null): bool|array
     {
         if (!$this->checkDir($this->path)):
             $this->error = $this->path . '图片上传目录创建失败或不可写';
@@ -60,7 +60,7 @@ class Upload
             foreach ($files as $v):
                 $info = pathinfo($v['name']);
                 $v["ext"] = isset($info["extension"]) ? $info['extension'] : '';
-                $v['filename'] = isset($info['filename']) ? $info['filename'] : '';
+                $v['filename'] = $info['filename'] ?? '';
 
                 if (!$this->checkFile($v)):
                     return ['error' => $this->error];
@@ -85,7 +85,7 @@ class Upload
      * @param array $file 储存的文件
      * @return array|boolean
      */
-    private function save($file)
+    private function save(array $file): bool|array
     {
         $fileName = mt_rand(1, 9999) . time() . "." . $file['ext'];
         $filePath = $this->path . $fileName;
@@ -149,10 +149,10 @@ class Upload
      */
     private function checkDir($path)
     {
-        return Dir::create($path) && is_dir($path) ? true : false;
+        return Dir::instance()->create($path) && is_dir($path);
     }
 
-    private function checkFile($file)
+    private function checkFile($file): bool
     {
         if ($file['error'] != 0) {
             $this->error($file['error']);
@@ -181,7 +181,7 @@ class Upload
         return true;
     }
 
-    private function error($error)
+    private function error($error): void
     {
         switch ($error) {
             case UPLOAD_ERR_INI_SIZE:
@@ -209,7 +209,7 @@ class Upload
      * 返回上传时发生的错误原因
      * @return string
      */
-    public function getError()
+    public function getError(): string
     {
         return $this->error;
     }

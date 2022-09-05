@@ -15,8 +15,16 @@ use ay\lib\Cache;
 
 use ay\lib\Curl;
 
+use ay\lib\Upload;
+
 class Index
 {
+
+    public function upload()
+    {
+        $upload = new Upload(PUB . 'upload/', ['txt']);
+        dump($upload->operate('file'));
+    }
 
     public function demo()
     {
