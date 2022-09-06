@@ -302,17 +302,17 @@ function halt($msg, $file = '', $line = ''): void
 /**
  * 无限级分类树
  */
-function tree($arr, $id = 'id', $pid = 'pid'): array
+function tree($arr, $id = 'id', $pid = 'pid')
 {
     $refer = [];
     $tree = [];
     foreach ($arr as $k => $v) {
-        $refer[$v[$id]] = &$v;
+        $refer[$v[$id]] = &$arr[$k];
     }
     foreach ($arr as $k => $v) {
         $sid = $v[$pid];
         if ($sid == 0) {
-            $tree[] = &$v;
+            $tree[] = &$arr[$k];
         } else {
             if (isset($refer[$sid])) {
                 $refer[$sid]['children'][] = &$arr[$k];
