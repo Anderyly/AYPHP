@@ -59,6 +59,7 @@ foreach ($configFileArr as $v) {
     C([str_replace('.php', '', $v) => include CONFIG . $v]);
 }
 
+
 // 错误类
 error_reporting(0);
 if (C('APP.DEBUG')) {
@@ -68,6 +69,25 @@ if (C('APP.DEBUG')) {
 }
 
 \ay\drive\Error::instance()->init();
+
+// 加载环境变量配置文件
+if (is_file(ROOT . '.env')) {
+    $env = parse_ini_file(ROOT . '.env', true);
+
+    foreach ($env as $key => $val) {
+        $name = 'PHP_' . strtoupper($key);
+
+        if (is_array($val)) {
+            foreach ($val as $k => $v) {
+                $item = $name . '_' . strtoupper($k);
+                putenv("$item=$v");
+            }
+        } else {
+            putenv("$name=$val");
+        }
+    }
+}
+
 
 // 加载配置
 $userCommonFile = scandir(APP_CONFIG);

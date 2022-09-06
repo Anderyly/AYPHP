@@ -4,6 +4,7 @@ namespace app\index\controller;
 
 
 use ay\lib\Dir;
+use ay\lib\Env;
 use ay\lib\Image;
 
 use ay\lib\Json;
@@ -17,8 +18,22 @@ use ay\lib\Curl;
 
 use ay\lib\Upload;
 
+use ay\lib\Db;
+
+
 class Index
 {
+
+    public function env()
+    {
+        dump(Env::get('data.debug'));
+    }
+
+    public function db()
+    {
+        $res = Db::name('tbl_user')->select();
+        dump($res);
+    }
 
     public function upload()
     {

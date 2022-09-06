@@ -12,6 +12,6 @@ return [
     'DB_PORT' => 3306,
     'DB_USER' => 'root',
     'DB_PASS' => 'root',
-    'DB_NAME' => 'oa',
+    'DB_NAME' => 'ay',
     'DB_PRE'  => ''
 ];

@@ -7,7 +7,7 @@
  */
 
 return [
-    'DEBUG' => false,
+    'DEBUG' => true,
     'DEFAULT_TIME_ZONE' => 'PRC',
     'REWRITE' => '',
     'SAVE_ERROR_LOG' => true,
