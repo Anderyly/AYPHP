@@ -27,7 +27,7 @@ class Index
 
     public function env()
     {
-        dump(Env::get('data.debug'));
+        dump(Env::get('app.debug'));
     }
 
     public function db()

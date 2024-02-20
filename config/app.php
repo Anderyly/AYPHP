@@ -6,8 +6,10 @@
  * @copyright Copyright (c) 2018
  */
 
+use ay\lib\Env;
+
 return [
-    'DEBUG' => true,
+    'DEBUG' => Env::get("app.debug", false),
     'DEFAULT_TIME_ZONE' => 'PRC',
     'REWRITE' => '',
     'SAVE_ERROR_LOG' => true,
@@ -20,5 +22,5 @@ return [
     'CACHE_TIME' => 1,
     'CHARSET' => 'UTF-8',
     'KEY' => 'anderyly',
-    'DOMAIN' => '127.0.0.1',
+    'DOMAIN' => Env::get("app.domain", "127.0.0.1"),
 ];

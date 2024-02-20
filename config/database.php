@@ -6,12 +6,14 @@
  * @copyright Copyright (c) 2018
  */
 
+use ay\lib\Env;
+
 return [
-    'DB_TYPE' => 'mysql',
-    'DB_HOST' => '127.0.0.1',
-    'DB_PORT' => 3306,
-    'DB_USER' => 'root',
-    'DB_PASS' => 'root',
-    'DB_NAME' => 'ay',
-    'DB_PRE'  => ''
+    'DB_TYPE' => Env::get("db.type", "mysql"),
+    'DB_HOST' => Env::get("db.host", "127.0.0.1"),
+    'DB_PORT' => Env::get("db.port", 3306),
+    'DB_USER' => Env::get("db.user", "root"),
+    'DB_PASS' => Env::get("db.pass", "root"),
+    'DB_NAME' => Env::get("db.database", "ay"),
+    'DB_PRE' => Env::get("db.pre", "ay_")
 ];
