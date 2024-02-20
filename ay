@@ -1,16 +1,16 @@
+#!/usr/bin/env php
 <?php
 /**
  * @author anderyly
  * @email admin@aaayun.cc
  * @link http://blog.aaayun.cc
- * @copyright Copyright (c) 2018
+ * @copyright Copyright (c) 2024
  */
 
 namespace ay;
 
 define('APP_NAME', 'app');
 
-include "../ayphp/ay.php";
+include "ayphp/ay.php";
 
-(new Base())->http();
-
+(new Base())->console();

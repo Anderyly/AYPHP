@@ -42,14 +42,11 @@ class Str
     /**
      * 转义危险字符 并 判断违禁词
      * @param string $data 内容
-     * @param array $filter 危险字符数组
+     * @param string $filter 危险字符数组
      * @return string
      */
     public function clean($data, $filter)
     {
-        if (!get_magic_quotes_gpc()) {
-            $data = addslashes($data);
-        }
         $data = strtolower($data);
         $data = str_replace("_", "\_", $data);
         $data = str_replace("%", "\%", $data);
@@ -63,7 +60,7 @@ class Str
 
         $arr = explode('|', $filter);
         foreach ($arr as $item) {
-            if (strstr($data, $item)) \ay\lib\Json::msg(400, '含有违禁词');
+            if (strstr($data, $item)) Json::msg(400, '含有违禁词');
         }
         return $data;
 
@@ -78,7 +75,7 @@ class Str
     {
         foreach ($data as $k => $v) {
             if (is_array($v)) {
-                $data[$k] = gbkToUtf8($v);
+                $data[$k] = $this->gbkToUtf8($v);
             } else {
                 $data[$k] = iconv('gbk', 'utf-8', $v);
             }
@@ -135,11 +132,10 @@ class Str
             'ｔ' => 't', 'ｕ' => 'u', 'ｖ' => 'v', 'ｗ' => 'w', 'ｘ' => 'x',
             'ｙ' => 'y', 'ｚ' => 'z',
             '（' => '(', '）' => ')', '〔' => '[', '〕' => ']', '【' => '[',
-            '】' => ']', '〖' => '[', '〗' => ']', '“' => '[', '”' => ']',
-            '‘' => '[', '’' => ']', '｛' => '{', '｝' => '}', '《' => '<',
-            '》' => '>',
+            '】' => ']', '〖' => '[', '〗' => ']', '“' => '[', '｛' => '{',
+            '｝' => '}', '《' => '<', '》' => '>',
             '％' => '%', '＋' => '+', '—' => '-', '－' => '-', '～' => '-',
-            '：' => ':', '。' => '.', '、' => ',', '，' => ',', '、' => '.',
+            '：' => ':', '。' => '.', '、' => ',', '，' => ',',
             '；' => ';', '？' => '?', '！' => '!', '…' => '-', '‖' => '|',
             '”' => '"', '’' => '`', '‘' => '`', '｜' => '|', '〃' => '"',
             '　' => ' '];
@@ -266,7 +262,7 @@ class Str
         $order_id_len = strlen($order_id_main);
         $order_id_sum = 0;
         for ($i = 0; $i < $order_id_len; $i++):
-            $order_id_sum += (int) (substr($order_id_main, $i, 1));
+            $order_id_sum += (int)(substr($order_id_main, $i, 1));
         endfor;
         $order_id = $order_id_main . str_pad((100 - $order_id_sum % 100) % 100, 2, '0', STR_PAD_LEFT);
         return $pix . $order_id;
@@ -298,23 +294,23 @@ class Str
         if (function_exists('com_create_guid')) {
             return com_create_guid();
         } else {
-            mt_srand((double) microtime() * 10000);
+            mt_srand((double)microtime() * 10000);
             $charid = strtoupper(md5(uniqid(rand(), true)));
             $hyphen = chr(45);
             if (!empty($var)) {
                 $uuid = chr(123)
-                . substr($charid, 0, 8) . $hyphen
-                . substr($charid, 8, 4) . $hyphen
-                . substr($charid, 12, 4) . $hyphen
-                . substr($charid, 16, 4) . $hyphen
-                . substr($charid, 20, 12)
-                . chr(125);
+                    . substr($charid, 0, 8) . $hyphen
+                    . substr($charid, 8, 4) . $hyphen
+                    . substr($charid, 12, 4) . $hyphen
+                    . substr($charid, 16, 4) . $hyphen
+                    . substr($charid, 20, 12)
+                    . chr(125);
             } else {
                 $uuid = substr($charid, 0, 8) . $hyphen
-                . substr($charid, 8, 4) . $hyphen
-                . substr($charid, 12, 4) . $hyphen
-                . substr($charid, 16, 4) . $hyphen
-                . substr($charid, 20, 12);
+                    . substr($charid, 8, 4) . $hyphen
+                    . substr($charid, 12, 4) . $hyphen
+                    . substr($charid, 16, 4) . $hyphen
+                    . substr($charid, 20, 12);
             }
             return $uuid;
         }

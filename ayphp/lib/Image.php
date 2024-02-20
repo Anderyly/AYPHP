@@ -188,7 +188,7 @@ class Image
         $imgInfo = pathinfo($img);
         $outFile = $outFile ? $outFile : dirname($img) . 'Image.php/' . $this->thumbPreFix . $imgInfo['filename'] . $this->thumbEndFix . "." . $imgInfo['extension'];
 
-        Dir::create(dirname($outFile));
+        Dir::instance()->create(dirname($outFile));
         $func = "image" . substr($imgType, 1);
         $func($res_thumb, $outFile);
         if (isset($resImg)) {

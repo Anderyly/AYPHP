@@ -18,7 +18,7 @@ class Model extends Db
         parent::__construct($option);
     }
 
-    public static function instance()
+    public static function instance(): object
     {
         $obj = "\\" . get_called_class();
         return new $obj;

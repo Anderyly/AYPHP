@@ -19,5 +19,6 @@ return [
     'CACHE' => true,
     'CACHE_TIME' => 1,
     'CHARSET' => 'UTF-8',
-    'KEY' => 'anderyly'
+    'KEY' => 'anderyly',
+    'DOMAIN' => '127.0.0.1',
 ];

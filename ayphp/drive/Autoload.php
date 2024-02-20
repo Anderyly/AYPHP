@@ -72,6 +72,7 @@ class Autoloader
     protected function autoloader($class): bool
     {
         $file = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
+        $file = str_replace('ay', 'ayphp', $file);
         foreach ($this->domainRoot as $path) {
             clearstatcache();
             $path = $path . DIRECTORY_SEPARATOR . $file;

@@ -24,6 +24,7 @@ use ay\lib\Db;
 class Index
 {
 
+
     public function env()
     {
         dump(Env::get('data.debug'));
@@ -64,7 +65,7 @@ class Index
         dump(is_ssl());
 
         // 抛出异常
-        halt();
+        halt('手动抛出异常');
 
         // 跳转
         go('http://baidu.com/', 3, "系统正在重定向");
@@ -267,5 +268,12 @@ class Index
 
         // 添加水印
         var_dump($image->water(PUB . "static/water/h.png", PUB . "static/water/h2.png", [100, 100], "", 1, "123"));
+    }
+
+    public function console()
+    {
+        for ($i = 0; $i < 10000; $i++) {
+            echo $i . PHP_EOL;
+        }
     }
 }

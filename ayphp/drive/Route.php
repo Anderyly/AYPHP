@@ -17,15 +17,21 @@ class Route
     public $action;
     private $field = '';
 
-    public function __construct()
+    private $request_url = '';
+
+    public function __construct($request_url = '')
     {
-        $this->router();
+        $this->router($request_url);
         $this->pathInfo();
     }
 
     //路由模式
-    public function router()
+    public function router($request_url = '')
     {
+
+        if (!defined('RUN_METHOD')) {
+            $request_url = $_SERVER['REQUEST_URI'];
+        }
 
         $path = ROOT . '/' . APP_NAME . '/route.php';
         $path = str_replace('//', '/', $path);
@@ -36,27 +42,30 @@ class Route
             $rules = [];
         }
 
-        if (isset($_SERVER['REQUEST_URI']) and !empty($rules)) {
-            $pathInfo = ltrim($_SERVER['REQUEST_URI'], "/");
+        if (isset($request_url) and !empty($rules)) {
+            $pathInfo = ltrim($request_url, "/");
             foreach ($rules as $k => $v) {
                 $reg = "/" . $k . "/i";
                 if (preg_match($reg, $pathInfo)) {
                     $res = preg_replace($reg, $v, $pathInfo);
-                    $_SERVER['REQUEST_URI'] = '/' . $res;
+                    $request_url = '/' . $res;
                 }
             }
         }
+
+        $this->request_url = $request_url;
 
     }
 
     // pathInfo处理
     public function pathInfo()
     {
+        $request_url = $this->request_url;
 
-        if (strpos($_SERVER['REQUEST_URI'], '?')) {
-            $path = substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], '?'));
+        if (strpos($request_url, '?')) {
+            $path = substr($request_url, 0, strrpos($request_url, '?'));
         } else {
-            $path = $_SERVER['REQUEST_URI'];
+            $path = $request_url;
         }
 
         if ($path != '/') {

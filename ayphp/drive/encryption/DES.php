@@ -106,7 +106,7 @@ class DES
      */
     private function unPkcsPadding($str)
     {
-        $pad = ord($str{strlen($str) - 1});
+        $pad = ord($str[strlen($str) - 1]);
         if ($pad > strlen($str)) {
             return false;
         }

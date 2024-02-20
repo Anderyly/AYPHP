@@ -8,6 +8,7 @@
 
 namespace ay;
 
+use ay\console\Input;
 use ay\drive\Log;
 use ay\drive\Route;
 use Exception;
@@ -30,8 +31,14 @@ final class Core
      */
     private static function route(): void
     {
+        if (defined('RUN_METHOD') && RUN_METHOD == 'cli') {
+            $input  = (new Input())->get();
+            var_dump($input[0]);
+            $route = new Route($input[0]);
+        } else {
+            $route = new Route();
+        }
 
-        $route = new Route();
         $mode = $route->mode;
         $controller = str_replace('.', '/', ucfirst($route->controller));
         $action = $route->action;

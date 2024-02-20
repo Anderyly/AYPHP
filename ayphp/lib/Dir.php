@@ -59,7 +59,7 @@ class Dir
         foreach (glob($dirPath . '*') as $v) {
             $id++;
             if (is_dir($v) || !$ext || preg_match("/\.($ext)/i", $v)) {
-                $path = Dir . phpstr_replace("\\", "/", realpath($v));
+                $path =  phpstr_replace("\\", "/", realpath($v));
                 $list[$id]['type'] = filetype($v);
                 $list[$id]['filename'] = basename($v);
                 $list[$id]['path'] = $path;

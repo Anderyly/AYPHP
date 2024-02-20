@@ -12,9 +12,9 @@ use ay\lib\Json;
 
 class Validator
 {
-    public static function check($data, $param)
+    public static function check($data, $rule)
     {
-        if (!is_array($param)) {
+        if (!is_array($rule)) {
             halt('param is not array');
         }
 
@@ -26,7 +26,7 @@ class Validator
             $userConfig = [];
         }
 
-        foreach ($param as $k => $v):
+        foreach ($rule as $k => $v):
             if (empty($v)) {
                 continue;
             }

@@ -123,11 +123,11 @@ class Controller
     /**
      * 调用模板显示函数
      * @param $filename
-     * @param null $data
+     * @param array $data
      * @throws \Exception
      */
-    public function view($filename, $data = null)
+    public function view($filename, array $data = [])
     {
-        \ay\lib\View::view($filename, $data);
+        View::view($filename, $data);
     }
 }
