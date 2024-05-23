@@ -1,11 +1,12 @@
+{{ use ay\lib\Html; }}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    {{ echo Html::title("标题"); }}
 </head>
 <body>
-{{ use ay\lib\Html; }}
+
 {{ echo Html::a("http://baidu.com", "百度"); }}
 
 </body>
