@@ -24,6 +24,10 @@ use ay\lib\Db;
 class Index
 {
 
+    public function html()
+    {
+        return view();
+    }
 
     public function env()
     {
